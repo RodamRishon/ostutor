@@ -1,0 +1,12 @@
+streamlit>=1.35
+matplotlib
+pandas
+numpy
+
+# Optional: the designed dense-retrieval backend (bge-small-en-v1.5 + FAISS).
+# Without these, build_index.py falls back to a numpy TF-IDF index automatically.
+# sentence-transformers
+# faiss-cpu
+
+# Optional: index PDF slides / notes dropped into corpus/institutional/
+# pypdf

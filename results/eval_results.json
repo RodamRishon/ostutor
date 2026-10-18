@@ -1,0 +1,35 @@
+{
+  "router": [
+    55,
+    55
+  ],
+  "algorithm": [
+    30,
+    30
+  ],
+  "numerical": [
+    30,
+    30
+  ],
+  "retrieval": [
+    20,
+    20
+  ],
+  "refusal": [
+    5,
+    5
+  ],
+  "concept_answered": [
+    20,
+    20
+  ],
+  "failures": [],
+  "summary": {
+    "Router accuracy (route)": "55/55 (100%)",
+    "Algorithm detection (numerical)": "30/30 (100%)",
+    "Numerical accuracy (tutor + simulator)": "30/30 (100%)",
+    "Retrieval hit@3 (concept)": "20/20 (100%)",
+    "Concept questions answered": "20/20 (100%)",
+    "Out-of-scope refusal": "5/5 (100%)"
+  }
+}

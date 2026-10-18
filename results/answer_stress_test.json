@@ -1,0 +1,22 @@
+{
+  "mode": "LLM: ostutor:latest via Ollama",
+  "total": 109,
+  "passed": 108,
+  "stats": {
+    "stored_answers": 56,
+    "model_answers": 37,
+    "guard_replaced_model_answer": 0,
+    "model_timeouts": 0,
+    "web_text_used_in_answer": 0,
+    "web_cards_shown": 5
+  },
+  "failures": [
+    {
+      "prompt": "does priority scheduling have convoy effect",
+      "problems": [
+        "answer too short"
+      ],
+      "answer": "\nYes, priority scheduling can suffer from the convoy effect. [1]"
+    }
+  ]
+}

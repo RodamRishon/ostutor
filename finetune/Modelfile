@@ -1,0 +1,20 @@
+# Ollama model for the fine-tuned tutor (Qwen2.5-3B-Instruct + QLoRA adapter, merged, Q4_K_M).
+#   unzip ostutor_export.zip into this folder, then:
+#   ollama create ostutor -f Modelfile
+# The Colab notebook writes an identical Modelfile into ostutor_export.zip.
+FROM ./ostutor-q4_k_m.gguf
+
+TEMPLATE """{{ if .System }}<|im_start|>system
+{{ .System }}<|im_end|>
+{{ end }}{{ if .Prompt }}<|im_start|>user
+{{ .Prompt }}<|im_end|>
+{{ end }}<|im_start|>assistant
+{{ .Response }}<|im_end|>
+"""
+
+SYSTEM """You are an Operating Systems tutor. Explain CPU scheduling step by step, using only the context provided, and cite the source note."""
+
+PARAMETER stop "<|im_end|>"
+PARAMETER stop "<|im_start|>"
+PARAMETER temperature 0.2
+PARAMETER num_ctx 4096
