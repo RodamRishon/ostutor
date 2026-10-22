@@ -47,6 +47,7 @@ QUESTION_WORDS |= {"pros", "cons", "pro", "con", "advantage", "disadvantage", "d
                    "vs", "versus", "part", "algo", "write", "short", "brief", "briefly", "notes", "answer", "marks",
                    "detail", "detailed", "list", "give", "state", "mention", "discuss", "elaborate", "summarize",
                    "summary", "overview", "introduction", "concept", "concepts", "topic", "pls", "plz", "please"}
+QUESTION_WORDS |= {"using", "mentioned", "stated", "according", "my", "our"}
 QUESTION_WORDS |= {stem(w) for w in QUESTION_WORDS}
 
 
@@ -82,7 +83,18 @@ _FRAME = {t for w in ("what is are the of a an how does do why which explain des
 
 
 # Many spellings -> one concept token, used only for title matching so abbreviations don't add noise.
+# "types of CPU scheduling algorithms", "list the scheduling algorithms" ... all ask for the list of algorithms.
+# Without a concept of their own, "cpu", "scheduling" and "algorithms" are stripped as framing words and the
+# question shrinks to {type}, which then matches "What are the types of schedulers?" (long/medium/short-term).
+_SCHED_ALGO = r"(?:(?:cpu|process)\s+)?scheduling\s+(?:algorithms?|algos?|policies)|cpu\s+(?:algorithms?|algos?)"
+_SCHED_ALGO_PL = r"(?:(?:cpu|process)\s+)?scheduling\s+(?:algorithms|algos|policies)|cpu\s+(?:algorithms|algos)"
 CANON = [
+    (r"\b(?:(?:different|various|diff|main|major|basic|common|all|the)\s+)*"
+     r"(?:types?|kinds?|categories|classes|classification)\s+of\s+(?:" + _SCHED_ALGO + r")\b", " algolist "),
+    (r"\b(?:list|name|enumerate|mention|state)\s+(?:out\s+)?(?:all\s+)?(?:the\s+)?(?:(?:different|various)\s+)?"
+     r"(?:" + _SCHED_ALGO_PL + r")\b(?=\s*(?:[?.,]|$|in\b|used\b|with\b|and\b|along\b|briefly\b))", " algolist "),
+    (r"\b(?:how many|what|which)\s+(?:" + _SCHED_ALGO_PL + r")\s+(?:are there|exist|do we have|are available|are used)\b",
+     " algolist "),
     (r"first[- ]come[- ]first[- ]served|first[- ]come|\bfcfs\b", " fcfs "),
     (r"round[- ]robin|\brr\b", " rr "),
     (r"shortest[- ]remaining[- ]time[- ]first|shortest[- ]remaining|\bsrtf\b|preemptive sjf|preemptive shortest",
@@ -106,6 +118,8 @@ CANON = [
     (r"comput\w*|calculat\w*|work(ing)? out|\bfind(ing)?\b|\bdetermine\b|\bformula\b|\bequation\b", " calculate "),
     (r"\bwait\w*", " waiting "), (r"turn\s*-?around|\btat\b", " turnaround "),
     (r"\btie\w*\b|\bsame\s+(burst|arrival|priority)\w*|equal\s+(burst|arrival|priority)\w*", " tiebreak "),
+    # "arrived earliest" in a question and "arrival order ... arrived first" in the notes are the same idea
+    (r"\barriv\w*", " arrival "), (r"\b(?:earliest|soonest|first)\b", " earliest "), (r"\bsmallest\b", " shortest "),
 ]
 
 
@@ -211,6 +225,12 @@ class Retriever:
             self._idf_map = {t: float(self.idf[i]) for t, i in self.vocab.items()}
         return self._idf_map
 
+    @staticmethod
+    def in_domain(query):
+        """True if the question mentions at least one CPU-scheduling term."""
+        return any(t in DOMAIN_STEMS or t.rstrip("s") in DOMAIN_STEMS for t in tokenize(query)) \
+            or bool(canon_tokens(query) & CANON_DOMAIN)
+
     def in_scope(self, query, hits):
         """True if the knowledge base can answer this question."""
         if not hits or hits[0]["score"] < self.threshold:
@@ -218,9 +238,7 @@ class Retriever:
         if self.backend == "bge":
             return True
         asked = {t for t in canon_tokens(query) if t not in QUESTION_WORDS}
-        in_domain = any(t in DOMAIN_STEMS or t.rstrip("s") in DOMAIN_STEMS for t in tokenize(query)) \
-            or bool(canon_tokens(query) & CANON_DOMAIN)
-        if not in_domain:
+        if not self.in_domain(query):
             return False
         if not asked:                                   # "what is CPU scheduling?": nothing but framing words
             return True

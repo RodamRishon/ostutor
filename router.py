@@ -100,11 +100,13 @@ def parse_processes(text):
     labelled = []
     for m in re.finditer(r"\b(P\d+)\b(.*?)(?=\bP\d+\b|\n|$)", text, re.I | re.S):
         chunk = m.group(2)
-        a = re.search(r"arriv\w*\s*(?:time)?\s*(?:=|:|at|of)?\s*(\d+)", chunk, re.I)
-        b = re.search(r"(?:burst|cpu|service|execution)\w*\s*(?:time)?\s*(?:=|:|of)?\s*(\d+)", chunk, re.I)
+        a = re.search(r"arriv\w*\s*(?:time)?\s*(?:=|:|at|of)?\s*(\d+)|\bat\s*[=:]\s*(\d+)", chunk, re.I)
+        b = re.search(r"(?:burst|cpu|service|execution)\w*\s*(?:time)?\s*(?:=|:|of)?\s*(\d+)|\bbt\s*[=:]\s*(\d+)",
+                      chunk, re.I)
         pr = re.search(r"priority\s*(?:=|:|of)?\s*(\d+)", chunk, re.I)
         if b:
-            labelled.append(Process(m.group(1).upper(), int(a.group(1)) if a else 0, int(b.group(1)),
+            labelled.append(Process(m.group(1).upper(), int(a.group(1) or a.group(2)) if a else 0,
+                                    int(b.group(1) or b.group(2)),
                                     int(pr.group(1)) if pr else 0))
     if len(labelled) >= 2:
         return labelled, notes

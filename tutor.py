@@ -455,6 +455,98 @@ def template_concept(question, hits, idf=None, topic=None):
     return "\n".join(lines)
 
 
+# --------------------------------------------------------------------------- #
+# "Which algorithm ...?" questions: the answer is a name, backed by a sentence #
+# --------------------------------------------------------------------------- #
+ALGO_NAMES = [      # (key, pattern, display name); a sentence "names" the algorithms whose pattern it contains
+    ("srtf", r"\bsrtf\b|shortest[- ]remaining", "SRTF (Shortest Remaining Time First)"),
+    ("rr", r"\brr\b|round[- ]robin", "Round Robin"),
+    ("sjf", r"\bsjf\b|shortest[- ]job", "SJF (Shortest Job First)"),
+    ("fcfs", r"\bfcfs\b|first[- ]come|\bfifo\b", "FCFS (First Come First Served)"),
+    ("hrrn", r"\bhrrn\b|response ratio", "HRRN (Highest Response Ratio Next)"),
+    ("mlfq", r"\bmlfq\b|multi-?level feedback", "MLFQ (Multilevel Feedback Queue)"),
+    ("edf", r"\bedf\b|earliest deadline", "EDF (Earliest Deadline First)"),
+    ("priority", r"\bpriority\b", "Priority Scheduling"),
+]
+ALGO_LABEL_BY_TAG = {"FCFS": "fcfs", "SJF": "sjf", "Round Robin": "rr", "Priority": "priority", "MLFQ": "mlfq"}
+ALGO_DISPLAY = {k: label for k, _, label in ALGO_NAMES}
+CANON_ALGOS = {"fcfs", "rr", "sjf", "srtf", "hrrn", "mlfq", "edf"}
+EVIDENCE_MIN = 0.5         # share of the question's (weighted) terms the best sentence must contain
+TOP_K_SHOWN = 3           # passages shown and sent to the model, as for every other concept question
+IDENTIFY_POOL = 12         # passages searched for evidence; only the ones actually used are shown
+
+
+def algorithms_in(text):
+    """[(position, key)] for every algorithm the text names, in reading order."""
+    found = [(m.start(), key) for key, pat, _ in ALGO_NAMES if (m := re.search(pat, text, re.I))]
+    return sorted(found)
+
+
+def selection_evidence(question, hits, idf=None):
+    """Which algorithm does the course material say matches what the question describes?
+
+    Every sentence of the retrieved passages is scored on how much of the question's *content* it
+    states ("arrived earliest" ~ "arrived first, strictly in arrival order"); the algorithm each good
+    sentence names then votes for itself.  Returns {key, label, sentences: [(hit, sentence)], coverage}
+    or None when no sentence states enough of the question to answer it (the caller must then say so)."""
+    idf = idf or {}
+    default = sum(idf.values()) / len(idf) if idf else 1.0
+    w = lambda t: idf.get(t, default)
+    pool = set().union(*(canon_tokens(h["text"]) for h in hits)) if hits else set()
+    # A word the course material never uses ("fixed") cannot be matched, so it is not held against a sentence.
+    terms = {t for t in canon_tokens(question) if t not in QUESTION_WORDS} & pool
+    if not terms or (len(terms) < 2 and len(canon_tokens(question)) > 1):
+        return None
+    total = sum(w(t) for t in terms)
+    asked = terms & CANON_ALGOS                 # the question itself describes the algorithm by name ("shortest remaining")
+    scored, seen = [], set()
+    for hi, h in enumerate(hits):
+        for sent in re.split(r"(?<=[.!?])\s+(?=[A-Z(])", h["text"]):
+            words = sent.split()
+            key = sent.strip().lower()
+            if (not 4 <= len(words) <= 70 or key in seen or sent.rstrip().endswith("?") or sent.count("|") > 2
+                    or re.search(r"https?://|\bISBN\b", sent) or _is_worked_example(sent)):
+                continue
+            seen.add(key)
+            toks = canon_tokens(sent)
+            hit_w = sum(w(t) for t in terms & toks)
+            if not hit_w:
+                continue
+            recall = hit_w / total
+            precision = hit_w / max(1e-9, sum(w(t) for t in toks))     # a focused sentence beats a long one that also matches
+            named = algorithms_in(sent)
+            if named:       # the algorithm the question describes, else the one the sentence is about (named first)
+                algo = next((k for _, k in named if k in asked), named[0][1])
+            else:           # "Each process gets a small unit of CPU time called the quantum": the passage's topic
+                algo = ALGO_LABEL_BY_TAG.get(h["algorithm"])
+            scored.append((0.8 * recall + 0.2 * precision - 0.01 * hi, recall, algo, h, sent.strip()))
+    if not scored:
+        return None
+    scored.sort(key=lambda x: -x[0])
+    best = scored[0][0]
+    votes = {}
+    for sc, rc, algo, h, sent in scored[:6]:
+        if sc >= 0.8 * best and algo:
+            votes[algo] = votes.get(algo, 0) + sc
+    if not votes or max(rc for _, rc, *_ in scored[:6]) < EVIDENCE_MIN:
+        return None
+    key = max(votes, key=votes.get)
+    support = [(h, sent) for sc, rc, algo, h, sent in scored if algo == key and sc >= 0.8 * best][:1]
+    return {"key": key, "label": ALGO_DISPLAY[key], "sentences": support, "coverage": round(max(rc for _, rc, *_ in scored[:6]), 2)}
+
+
+def template_identify(ev, used):
+    """The no-LLM answer to 'which algorithm ...': the name first, then the course's own sentence(s)."""
+    lines = [f"**Answer: {ev['label']}**", ""]
+    lines += [f"- {sent} [{used.index(h) + 1}]" for h, sent in ev["sentences"]]
+    return "\n".join(lines)
+
+
+NO_EVIDENCE = ("I couldn't find a passage in the course material that says which algorithm that describes, "
+               "so I won't guess. Try naming the rule (for example *shortest burst*, *time quantum*, "
+               "*arrival order*) or the algorithms you are choosing between.")
+
+
 def numerical_summary(result, notes):
     """Short chat text for the UI, which draws the Gantt chart and table itself."""
     q = f" with time quantum {result['quantum']}" if result["quantum"] else ""
@@ -511,6 +603,17 @@ class Tutor:
             if len(out) == n:
                 break
         return out
+
+    def _identify_hits(self, question, topic, hits):
+        """For 'which algorithm ...?': search a wider pool, find the sentence that states the rule the question
+        describes, and put the passages that state it first so the prompt, the citations and the sources agree."""
+        pool = self.retriever.search(question, k=IDENTIFY_POOL, algorithm=topic)
+        evidence = selection_evidence(question, pool, self.retriever.idf_lookup())
+        if not evidence:
+            return hits, None
+        used = [h for h, _ in evidence["sentences"]]
+        ordered = used + [h for h in pool if all(h is not u for u in used)]
+        return ordered[:max(TOP_K_SHOWN, len(used))], evidence
 
     def web_passages(self, question, reference_texts, topic=None, k=2):
         """Up to k GeeksforGeeks passages that are about the same topic, relevant, and add information the
@@ -627,9 +730,13 @@ class Tutor:
             return out
 
         # concept question
+        intent = detect_intent(question)[0]
         hits = self.retriever.search(question, algorithm=r.topic)
+        evidence = None
+        if intent == "identify":       # "which algorithm ...?": find the passage that states the rule, don't match topics
+            hits, evidence = self._identify_hits(question, r.topic, hits)
         out["hits"] = hits
-        if not self.retriever.in_scope(question, hits):
+        if not self.retriever.in_scope(question, hits) and not (evidence and self.retriever.in_domain(question)):
             out.update(in_scope=False, hits=[],
                        text="I can only answer questions about CPU scheduling from the course material, "
                             "and I couldn't find anything relevant to that in my knowledge base. "
@@ -637,7 +744,7 @@ class Tutor:
                             "scheduling problem to solve.")
             return out
         out["related"] = self._related(question, hits)
-        out["intent"] = detect_intent(question)[0]
+        out["intent"] = intent
         rich = rich_answers.find(question, canon_tokens)
         if rich and not os.environ.get("OSTUTOR_NO_SHORTCUT"):          # a hand-written side-by-side table
             out["rich"] = rich_answers.to_markdown(rich)
@@ -681,7 +788,14 @@ class Tutor:
                     out["hits"] = hits + web_hits
                     out["notes"].append("ℹ️ This answer includes detail from GeeksforGeeks (web, not vetted course material): "
                                         + "; ".join(web_title(h) for h in used) + ".")
-        direct = None if llm else qa_direct(question, hits)
+        if llm and evidence and evidence["key"] not in {k for _, k in algorithms_in(llm)}:
+            out["guard"] = ["the algorithm named in the course material"]
+            out["notes"].append(f"The model's answer did not name {evidence['label']}, which the course material "
+                                "identifies, so the course answer is shown instead.")
+            llm = None
+        # A whole stored Q&A is only the answer when the question asks for what its title asks; a "which algorithm"
+        # question is answered from the evidence sentence, never by the nearest definition.
+        direct = None if llm or intent == "identify" else qa_direct(question, hits)
         if direct:
             out["text"], top = direct
             out["title"], out["body"] = display_title(top["title"]), top["text"]
@@ -689,7 +803,12 @@ class Tutor:
             out["hits"] = [top] + [h for h in hits if h is not top]
             out["more"] = self._more_detail(question, [top["text"]] + [h["text"] for h in hits[:3]], r.topic)
             return out
-        out["text"] = llm or template_concept(question, hits, self.retriever.idf_lookup(), r.topic) or "The material I found is listed below."
+        if intent == "identify":
+            fallback = template_identify(evidence, hits) if evidence else NO_EVIDENCE
+        else:
+            fallback = template_concept(question, hits, self.retriever.idf_lookup(), r.topic) \
+                or "The material I found is listed below."
+        out["text"] = llm or fallback
         if not out.get("web_used"):               # the answer did not draw on the web page: still offer what it adds
             out["more"] = self._more_detail(question, [out["text"]] + [h["text"] for h in hits], r.topic)
         return out

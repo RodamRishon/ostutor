@@ -21,7 +21,7 @@ ROOT = pathlib.Path(__file__).parent
 
 # (name, pattern, instruction for the answer).  First match wins, so order matters.
 INTENTS = [
-    ("compare", r"\b(compare|comparison|difference|differences|differ|differs|versus|vs\.?|distinguish|"
+    ("compare", r"\b(compare|comparison|difference|differences|differ|differs|differentiate|versus|vs\.?|distinguish|"
                 r"better than|which is better|contrast)\b",
      "Compare them point by point (how each decides what runs next, preemption, starvation, overhead, "
      "when to use each) and end with one line saying which is better for what."),
@@ -31,6 +31,14 @@ INTENTS = [
      "and correct the misconception if there is one."),
     ("why", r"\bwhy\b|\bhow come\b|\breason\b",
      "Give the reason directly: state the cause, then the effect it produces. Do not just define the term."),
+    # "Which algorithm selects the earliest arrival?" asks for a NAME. It must not fall through to "define" and be
+    # answered with a definition of whichever concept the question happens to mention (the ready queue ...).
+    ("identify", r"\bwhich\b(?:\s+[\w-]+){0,4}?\s+(?:algorithms?|algos?|schedulers?|polic(?:y|ies)|techniques?)\b|"
+                 r"\bwhat\b(?:\s+[\w-]+){0,3}?\s+(?:algorithm|algo|scheduler|policy|technique)\s+"
+                 r"(?:is|are|does|do|can|will|would|selects?|uses?|gives?|allocates?|picks?|runs?)\b|"
+                 r"\bname the (?:algorithm|scheduler|policy)\b",
+     "Start with the name of the algorithm in bold, then give the rule from the context that identifies it "
+     "(how it picks the next process). Do not define other concepts mentioned in the question."),
     ("analogy", r"\banalog|real[- ]life|real[- ]world|everyday|metaphor|\bimagine\b|layman|simple words|"
                 r"in simple terms|like i'?m (5|five)|like i am (5|five)|easy way|intuition",
      "Give one everyday analogy, then map each part of the analogy onto the scheduling concept."),
@@ -53,7 +61,7 @@ INTENTS = [
 ]
 DEFAULT_INSTRUCTION = "Answer the question directly in a short paragraph."
 
-LENGTH_HINT = {"compare": 160, "pros_cons": 100, "steps": 140, "define": 130, "analogy": 150}
+LENGTH_HINT = {"identify": 80, "compare": 160, "pros_cons": 100, "steps": 140, "define": 130, "analogy": 150}
 
 
 def detect_intent(question: str):
