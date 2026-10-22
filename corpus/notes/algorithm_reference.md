@@ -12,6 +12,10 @@ CPU scheduling is the operating system's decision about which process in the rea
 
 There are three types of schedulers: the long-term (job) scheduler, which admits jobs into memory and controls the degree of multiprogramming; the medium-term scheduler, which swaps processes out of and back into memory; and the short-term (CPU) scheduler, which chooses the next ready process to run and runs very often. FCFS, SJF, Priority and Round Robin are short-term (CPU) scheduling algorithms.
 
+### What are the different types of CPU scheduling algorithms?
+
+The main CPU scheduling algorithms are: First Come First Served (FCFS), which runs processes in the order they arrive; Shortest Job First (SJF), which runs the process with the shortest next CPU burst; Shortest Remaining Time First (SRTF), the preemptive version of SJF; Priority scheduling, which runs the highest-priority process and comes in non-preemptive and preemptive versions; and Round Robin (RR), which gives each process a fixed time quantum in turn. The course also covers Highest Response Ratio Next (HRRN), multilevel queue and multilevel feedback queue (MLFQ) scheduling, lottery scheduling, and real-time algorithms such as EDF and Rate Monotonic. By behaviour they split into non-preemptive algorithms (FCFS, SJF, non-preemptive Priority, HRRN) and preemptive algorithms (SRTF, Round Robin, preemptive Priority, MLFQ).
+
 ### What is the difference between the long-term, medium-term and short-term scheduler?
 
 The long-term (job) scheduler decides which jobs are admitted into memory, so it controls the degree of multiprogramming. The short-term (CPU) scheduler decides which ready process runs on the CPU next and runs very frequently, so it must be fast. The medium-term scheduler swaps processes out of memory and back in to reduce the degree of multiprogramming. The algorithms FCFS, SJF, Priority and Round Robin are all short-term (CPU) scheduling algorithms.

@@ -171,6 +171,21 @@ def _():
     return cite(hits[0])
 
 
+@check("'types of CPU scheduling algorithms' lists the algorithms, not the long/medium/short-term schedulers")
+def _():
+    from tutor import Tutor
+    t = Tutor(use_llm=False)
+    for q in ("what are the different types of CPU Scheduling algorithms", "list the scheduling algorithms",
+              "types of scheduling algorithms", "how many cpu scheduling algorithms are there"):
+        out = t.answer(q)
+        body = out["text"]
+        assert out.get("title") == "What are the different types of CPU scheduling algorithms?", (q, out.get("title"))
+        assert all(a in body for a in ("FCFS", "SJF", "SRTF", "Priority", "Round Robin")), q
+    # ...and the neighbouring question about schedulers still gets its own answer
+    assert "schedulers" in Tutor(use_llm=False).answer("types of schedulers in os")["title"].lower()
+    return "4 phrasings -> algorithm list; 'types of schedulers' unaffected"
+
+
 @check("retrieval threshold: off-topic question is refused")
 def _():
     q = "What is the capital of France?"
