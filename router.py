@@ -33,6 +33,20 @@ ALGO_LABEL = {"fcfs": "FCFS", "sjf": "SJF", "srtf": "SJF", "priority": "Priority
 
 PRACTICE = r"\b(practice|generate|give me|make me|create|new)\b.*\b(problem|question|numerical|exercise)s?\b"
 CHECK = r"\b(check|verify|mark|grade|is (this|my) (answer|solution)|did i get)\b"
+# "Verify every calculation using the formulas" is an instruction inside a problem statement, not a request to
+# grade a student's answer. A check needs the student to point at their own answer ("check my answer", "is this
+# correct") or to actually include one (a Gantt chart such as "P1 0-2", "waiting P1 = 4", "my answer: ...").
+CHECK_MINE = (r"\b(check|verify|mark|grade|validate|review|correct)\s+(?:if\s+|whether\s+)?(?:my|this|our|the following)\s+"
+              r"(?:answer|solution|working|work|result|calculation|gantt|attempt)s?\b"
+              r"|\bis\s+(?:this|my|the following)\s+(?:answer|solution|working|gantt)\b|\bdid i get\b|\bam i (?:right|correct)\b")
+STUDENT_ANSWER = (r"\bmy\s+(?:answer|solution|working|gantt|result|calculation|attempt)s?\b|\bi\s+(?:got|get|calculated|computed|found)\b"
+                  r"|\banswer\s*:|\bP\d+\s*[:(]?\s*\d+\s*[-\u2013\u2192>]+\s*\d+"
+                  r"|\b(?:waiting|turnaround|response|completion)\b[^.\n]{0,30}=\s*\d")
+
+
+def wants_check(low):
+    """True only when the text asks to grade a student's answer, not when it merely contains the word 'verify'."""
+    return bool(re.search(CHECK_MINE, low) or (re.search(CHECK, low) and re.search(STUDENT_ANSWER, low, re.I)))
 # "Explain SJF with a numerical" / "show me an example of RR": the student wants
 # the tutor to solve and walk through an example itself, not be handed an
 # unsolved practice problem (that's PRACTICE) and not just the theory (concept).
@@ -65,9 +79,22 @@ class Route:
         return ALGO_LABEL.get(self.algorithm)
 
 
+# "If two processes have the same priority, use FCFS" names FCFS only as a tie-break rule, so a problem that
+# says it is not a request to compare Priority with FCFS.
+_TIE_BREAK = re.compile(
+    r"(?:if|when|in case|where)\b[^.;\n]{0,60}\b(?:same|equal|identical|tied?)\b[^.;\n]{0,40}\b(?:priority|burst|arrival|time)\b[^.;\n]*"
+    r"|\b(?:ties|tie)\b[^.;\n]{0,30}\b(?:are\s+)?(?:broken|resolved|settled|handled|decided)\b[^.;\n]*"
+    r"|\b(?:break|breaking|resolve|resolving)\s+(?:any\s+)?(?:ties|a tie)\b[^.;\n]*"
+    r"|\bin case of (?:a )?(?:tie|ties)\b[^.;\n]*|\btie[\s-]*break(?:er|ing)?\b[^.;\n]*", re.I)
+
+
+def without_tie_breaks(text):
+    return _TIE_BREAK.sub(" ", text)
+
+
 def detect_algorithms(text):
     """Every algorithm the text names, in order: "compare FCFS, SJF and Round Robin" -> ['sjf', 'rr', 'fcfs']."""
-    low = text.lower()
+    low = without_tie_breaks(text).lower()
     found = [k for k, pat in ALGO_PATTERNS if re.search(pat, low)]
     pre = re.search(r"\bpre-?empt", re.sub(r"non[\s-]*pre-?empt", "", low))
     nonpre = re.search(r"non[\s-]*pre-?empt", low)
@@ -79,7 +106,7 @@ def detect_algorithms(text):
 
 
 def detect_algorithm(text):
-    low = text.lower()
+    low = without_tie_breaks(text).lower()
     nonpre = re.search(r"non[\s-]*pre-?empt", low)
     pre = re.search(r"\bpre-?empt", re.sub(r"non[\s-]*pre-?empt", "", low))
     for key, pat in ALGO_PATTERNS:
@@ -191,7 +218,7 @@ def route(text):
     q = detect_quantum(text)
     if algo == "rr" and q is not None and q <= 0 and (procs or re.search(NEEDS_DATA, low)):
         return Route("invalid", algorithm=algo, quantum=q, notes=[f"the time quantum must be a positive whole number (got {q})"])
-    if re.search(CHECK, low) and procs:
+    if wants_check(low) and procs:
         r = Route("check", algorithm=algo, quantum=detect_quantum(text), processes=procs, notes=notes)
         return r
     if len(procs) >= 2 and len(detect_algorithms(text)) >= 2:

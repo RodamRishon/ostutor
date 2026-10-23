@@ -1,0 +1,22 @@
+Solve the following problem using PREEMPTIVE PRIORITY SCHEDULING.
+
+Assumption: A lower numerical priority value indicates a higher priority. If two processes have the same priority, use FCFS.
+
+Process | Arrival Time | Burst Time | Priority P1 | 0 | 8 | 3 P2 | 2 | 4 | 1 P3 | 3 | 2 | 2 P4 | 5 | 3 | 4
+
+Provide:
+
+1. The complete Gantt chart.
+2. Completion time (CT) for each process.
+3. Turnaround time (TAT) for each process.
+4. Waiting time (WT) for each process.
+5. Response time (RT) for each process.
+6. Average waiting time, turnaround time, and response time.
+7. A step-by-step explanation of every scheduling decision.
+
+Important:
+
+A newly arrived process with a higher priority must preempt the running process.
+A lower numerical priority value means higher priority.
+Account for the remaining burst time of preempted processes.
+Verify every calculation using the appropriate formulas.
