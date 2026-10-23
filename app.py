@@ -28,7 +28,8 @@ st.set_page_config(page_title="OS CPU Scheduling Tutor", page_icon="🖥️", la
 
 @st.cache_resource
 def get_tutor():
-    return Tutor()
+    import tutor as _tutor_module          # looked up at call time, so a code reload (below) is picked up
+    return _tutor_module.Tutor()
 
 
 def show_gantt(result, upto=None):
@@ -105,6 +106,13 @@ def render_answer(ans, key, latest=False):
         render_more(ans["more"])
     for n in ans.get("notes", []):
         st.info(n)
+    status = ans.get("status")
+    if status:                                            # only what actually happened to THIS answer
+        icon = {"verified": "✅", "checked": "🟡", "stored": "📘", "none": "ℹ️", "unverified": "⚠️", "error": "❌"}[status["level"]]
+        st.caption(f"{icon} {status['label']}")
+    for j, res in enumerate(ans.get("results") or []):
+        with st.expander(f"{res['algorithm_name']}: Gantt chart and times"):
+            show_result(res, key=f"{key}-cmp{j}")
     if ans.get("result") is not None and ans["kind"] in ("numerical", "check", "worked_example"):
         show_result(ans["result"], key)
     if ans.get("kind") == "practice" and ans.get("result") is not None:
@@ -127,15 +135,39 @@ with st.sidebar:
     st.title("🖥️ CPU Scheduling Tutor")
     st.caption("RAG + instruction-tuned LLM + deterministic simulator")
     st.subheader("System status")
-    st.markdown(f"**Retrieval:** `{tutor.retriever.backend}` index, {len(tutor.retriever.records)} chunks")
-    st.markdown(f"**Generation:** {tutor.mode}")
-    st.markdown("**Verification:** scheduling simulator (FCFS, SJF, SRTF, Priority, RR)")
+    import json as _json
+    import datetime as _dt
+    import concept_check as _cc
+    idx_meta = ROOT / "index" / "metadata.json"
+    built = _dt.datetime.fromtimestamp(idx_meta.stat().st_mtime).strftime("%Y-%m-%d %H:%M") if idx_meta.exists() else "missing"
+    docs = len({r["source"] for r in tutor.retriever.records})
+    st.markdown(f"**Retrieval:** `{tutor.retriever.backend}` index, {len(tutor.retriever.records)} chunks from {docs} documents "
+                f"(built {built})")
+    st.markdown(f"**Generation:** {tutor.mode}" + ("" if tutor.model else " ⚠️ concept answers are quoted, exam-format questions need the model"))
+    n_fail = sum(1 for _ in _cc.LOG_PATH.open()) if _cc.LOG_PATH.exists() else 0
+    st.markdown("**Verification:** numbers are computed by the simulator and re-checked against their definitions; "
+                "generated concept answers go through the fact-rule check (`concept_check.py`). "
+                f"Logged check failures so far: {n_fail}.")
     if st.button("Rebuild index from corpus/"):
-        with st.spinner("cleaning, chunking, indexing…"):
-            backend, n = build(quiet=True)
-        st.cache_resource.clear()
-        st.success(f"rebuilt: {backend}, {n} chunks")
-        st.rerun()
+        try:
+            with st.spinner("cleaning, chunking, indexing…"):
+                backend, n = build(quiet=True)
+            import importlib, sys
+            # Also pick up edited code, not just the rebuilt index, so a restart of Streamlit is not needed. Every
+            # project module is reloaded, leaves first: tutor.py imports from intent / scheduler / checker, so
+            # reloading only retriever + tutor fails with ImportError as soon as one of those gained a new name.
+            for _name in ("build_index", "scheduler", "facts", "concept_check", "rich_answers", "present", "checker",
+                          "practice", "intent", "router", "retriever", "tutor"):
+                if _name in sys.modules:
+                    importlib.reload(sys.modules[_name])
+            st.cache_resource.clear()
+            st.session_state["_rebuild_msg"] = ("success", f"rebuilt: {backend}, {n} chunks")
+            st.rerun()
+        except Exception as e:                 # a failed rebuild must be visible, and must not leave a half-updated page
+            st.error(f"Index rebuild failed: {type(e).__name__}: {e}. The previous index is still in use.")
+    if st.session_state.get("_rebuild_msg"):
+        kind, msg = st.session_state.pop("_rebuild_msg")
+        getattr(st, kind)(msg)
     st.divider()
     st.caption("A lower priority number means a higher priority. Ties are broken by arrival time, "
                "then by process number.")

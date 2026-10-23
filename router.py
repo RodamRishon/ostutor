@@ -41,6 +41,11 @@ WORKED_EXAMPLE = (r"\b(with|using)\s+(a\s+|an\s+)?(numerical|example|worked[\s-]
                   r"|\bwalk\s+me\s+through\b|\bworked[\s-]example\b")
 
 
+# "Solve this Round Robin problem and calculate the average waiting time." with no process table attached
+NEEDS_DATA = (r"^\W*(?:please\s+)?(?:solve|work out)\b|"
+              r"\b(?:solve|calculate|compute|find)\s+(?:this|the|my|a)\s+(?:[\w-]+\s+){0,3}(?:problem|numerical|question)\b")
+
+
 @dataclass
 class Route:
     kind: str                       # numerical | practice | check | concept
@@ -51,12 +56,26 @@ class Route:
     notes: list = field(default_factory=list)   # parser remarks shown to the student
 
     multi: bool = False             # question names more than one algorithm
+    algorithms: list = field(default_factory=list)   # compare_numerical: every algorithm to run on the same data
 
     @property
     def topic(self):
         if self.multi:
             return "Comparison"
         return ALGO_LABEL.get(self.algorithm)
+
+
+def detect_algorithms(text):
+    """Every algorithm the text names, in order: "compare FCFS, SJF and Round Robin" -> ['sjf', 'rr', 'fcfs']."""
+    low = text.lower()
+    found = [k for k, pat in ALGO_PATTERNS if re.search(pat, low)]
+    pre = re.search(r"\bpre-?empt", re.sub(r"non[\s-]*pre-?empt", "", low))
+    nonpre = re.search(r"non[\s-]*pre-?empt", low)
+    if "priority" in found and pre and not nonpre:
+        found[found.index("priority")] = "priority_p"
+    if "sjf" in found and pre and not nonpre and "srtf" not in found:
+        found[found.index("sjf")] = "srtf"
+    return list(dict.fromkeys(found))
 
 
 def detect_algorithm(text):
@@ -76,9 +95,10 @@ def detect_algorithm(text):
 
 
 def detect_quantum(text):
-    m = re.search(r"(?:quantum|time\s*slice|\bq\b)\s*(?:=|:|of|is)?\s*(\d+)", text, re.I)
+    """The time quantum as written, including 0 or a negative number (the caller reports those as invalid)."""
+    m = re.search(r"(?:quantum|time\s*slice|\bq\b)\s*(?:=|:|of|is)?\s*(-?\d+)", text, re.I)
     if not m:
-        m = re.search(r"(\d+)\s*(?:ms|units?)?\s*(?:time\s*)?quantum", text, re.I)
+        m = re.search(r"(-?\d+)\s*(?:ms|units?)?\s*(?:time\s*)?quantum", text, re.I)
     return int(m.group(1)) if m else None
 
 
@@ -91,6 +111,17 @@ def _list_after(label_regex, text):
     m = re.search(r"(?:" + label_regex + r")(?:\s*(?:times?|values?|are|is|of|=|:|\(ms\)|ms|respectively)\s*)*"
                   r"((?:\d+\s*(?:,|and|\s)\s*)+\d+)(?!\s*[A-Za-z]*\d)", text, re.I)
     return _ints(m.group(1)) if m else None
+
+
+def _complete(procs, text):
+    """Order the parsed processes by first mention, and refuse (rather than silently drop one) if any process
+    named in the text has no readable arrival/burst."""
+    mentioned = list(dict.fromkeys(m.upper() for m in re.findall(r"\bP\d+\b", text, re.I)))
+    have = {p.pid for p in procs}
+    missing = [m for m in mentioned if m not in have]
+    if missing:
+        raise ValueError(f"I could not read the arrival and burst times for {', '.join(missing)}")
+    return sorted(procs, key=lambda p: mentioned.index(p.pid))
 
 
 def parse_processes(text):
@@ -109,7 +140,10 @@ def parse_processes(text):
                                     int(b.group(1) or b.group(2)),
                                     int(pr.group(1)) if pr else 0))
     if len(labelled) >= 2:
-        return labelled, notes
+        try:
+            return _complete(labelled, text), notes
+        except ValueError:      # some processes are in another format: the row parser below merges them in
+            pass
 
     # 2. parallel lists: "burst times 8,4,9,5 arrival 0,1,2,3 priorities 3,1,4"
     bursts = _list_after(r"burst(?:\s*times?)?|cpu\s*bursts?|service\s*times?", text)
@@ -124,14 +158,18 @@ def parse_processes(text):
 
     # 3. table rows: "P1 0 24 3" -> pid arrival burst [priority]
     rows = re.findall(r"\b(P\d+)\b[\s|,:]+(\d+)[\s|,]+(\d+)(?:[\s|,]+(\d+))?(?!\s*[=\d])", text, re.I)
-    if len(rows) >= 2:
+    if len(rows) + len(labelled) >= 2 and rows:
         # Column order: arrival before burst unless a header line says otherwise.
         header = text[:re.search(r"\bP\d+\b", text, re.I).start()].lower()
         swap = "burst" in header and "arriv" in header and header.index("burst") < header.index("arriv")
         if swap:
             notes.append("header lists burst before arrival; columns read in that order")
-        return [Process(pid.upper(), int(b) if swap else int(a), int(a) if swap else int(b),
-                        int(p) if p else 0) for pid, a, b, p in rows], notes
+        procs = [Process(pid.upper(), int(b) if swap else int(a), int(a) if swap else int(b),
+                         int(p) if p else 0) for pid, a, b, p in rows]
+        # a question may mix "P1 arrives 0 burst 24" with "P2 0 3": keep the labelled ones too
+        have = {p.pid for p in procs}
+        procs += [p for p in labelled if p.pid not in have]
+        return _complete(procs, text), notes
 
     # 4. bursts only: "P1=24, P2=3, P3=3" or "P1 = 24 ms"
     pairs = re.findall(r"\b(P\d+)\s*(?:=|:|->|with burst)\s*(\d+)", text, re.I)
@@ -149,9 +187,22 @@ def route(text):
     try:
         procs, notes = parse_processes(text)
     except ValueError as e:                 # e.g. a burst time of 0
-        return Route("concept", algorithm=algo, notes=[f"could not use the process data: {e}"])
+        return Route("invalid", algorithm=algo, notes=[f"could not use the process data: {e}"])
+    q = detect_quantum(text)
+    if algo == "rr" and q is not None and q <= 0 and (procs or re.search(NEEDS_DATA, low)):
+        return Route("invalid", algorithm=algo, quantum=q, notes=[f"the time quantum must be a positive whole number (got {q})"])
     if re.search(CHECK, low) and procs:
         r = Route("check", algorithm=algo, quantum=detect_quantum(text), processes=procs, notes=notes)
+        return r
+    if len(procs) >= 2 and len(detect_algorithms(text)) >= 2:
+        algos = detect_algorithms(text)
+        r = Route("compare_numerical", algorithm=algos[0], quantum=detect_quantum(text), processes=procs, notes=notes,
+                  algorithms=algos)
+        if "rr" in algos and not r.quantum:
+            r.quantum = 2
+            r.notes.append("no time quantum given, so q = 2 is assumed for Round Robin")
+        if any(a.startswith("priority") for a in algos) and all(p.priority == 0 for p in procs):
+            r.notes.append("no priorities were found in the question; every process has priority 0")
         return r
     if len(procs) >= 2:
         r = Route("numerical", algorithm=algo, quantum=detect_quantum(text), processes=procs, notes=notes)
@@ -166,5 +217,7 @@ def route(text):
         return r
     if algo and re.search(WORKED_EXAMPLE, low):
         return Route("worked_example", algorithm=algo, quantum=detect_quantum(text))
+    if algo and re.search(NEEDS_DATA, low):
+        return Route("needs_data", algorithm=algo, quantum=detect_quantum(text))
     named = {ALGO_LABEL[k] for k, pat in ALGO_PATTERNS if re.search(pat, low)}
     return Route("concept", algorithm=algo, multi=len(named) >= 2)

@@ -10,6 +10,13 @@ Conventions (Silberschatz, Operating System Concepts):
     * waiting    = turnaround - burst
     * response   = first time on the CPU - arrival
     * ties are broken by arrival time, then by the order the processes were given
+    * preemptive algorithms (SRTF, preemptive Priority) preempt only for a STRICTLY better key: an equal
+      remaining time or priority leaves the running process on the CPU
+    * Round Robin: a process that arrives at the instant a quantum expires joins the queue BEFORE the preempted
+      process; processes arriving together are queued in input order
+    * context switches take ZERO time (no switch overhead is modelled), and the dispatcher is instantaneous
+    * the CPU is idle (shown as "idle" in the Gantt chart) when nothing has arrived; idle time is not waiting time
+    * inputs are validated: non-empty list, unique pids, integer arrival >= 0 and burst > 0, positive integer quantum
 
 Every algorithm also records a decision log ("t=3: P2 arrives ...") which the
 tutor uses to explain the solution step by step and which the answer checker
@@ -34,6 +41,10 @@ class Process:
     order: int = field(default=0, repr=False)  # position in the input, for ties
 
     def __post_init__(self):
+        for name in ("arrival", "burst", "priority"):
+            v = getattr(self, name)
+            if isinstance(v, bool) or not isinstance(v, int):
+                raise ValueError(f"{self.pid}: {name} time must be a whole number, got {v!r}")
         if self.burst <= 0:
             raise ValueError(f"{self.pid}: burst time must be positive")
         if self.arrival < 0:
@@ -273,9 +284,22 @@ def round_robin(procs, quantum):
 
 
 # --------------------------------------------------------------------------- #
+def validate(procs, quantum=None):
+    """Raise ValueError (with a message fit to show a student) unless the input can be scheduled."""
+    if not procs:
+        raise ValueError("no processes were given")
+    pids = [p.pid for p in procs]
+    dup = sorted({x for x in pids if pids.count(x) > 1})
+    if dup:
+        raise ValueError(f"process id(s) used more than once: {', '.join(dup)}")
+    if quantum is not None and (isinstance(quantum, bool) or not isinstance(quantum, int) or quantum <= 0):
+        raise ValueError("time quantum must be a positive whole number")
+
+
 def solve(algorithm, procs, quantum=None):
     """Single entry point used by the router, the dataset tools and the UI."""
     algorithm = algorithm.lower()
+    validate(procs, quantum)
     if algorithm == "fcfs":
         return fcfs(procs)
     if algorithm == "sjf":
@@ -291,6 +315,34 @@ def solve(algorithm, procs, quantum=None):
             raise ValueError("Round Robin needs a time quantum")
         return round_robin(procs, quantum)
     raise ValueError(f"unknown algorithm {algorithm!r}")
+
+
+def check_invariants(result):
+    """Re-check a finished schedule against the definitions, independently of how it was produced.
+    Returns a list of problems; an empty list means every invariant holds."""
+    problems = []
+    gantt = result["gantt"]
+    for (p1, s1, e1), (p2, s2, e2) in zip(gantt, gantt[1:]):
+        if e1 > s2:
+            problems.append(f"Gantt segments {p1} and {p2} overlap")
+    for r in result["rows"]:
+        pid = r["pid"]
+        if r["turnaround"] != r["completion"] - r["arrival"]:
+            problems.append(f"{pid}: turnaround != completion - arrival")
+        if r["waiting"] != r["turnaround"] - r["burst"] or r["waiting"] < 0:
+            problems.append(f"{pid}: waiting != turnaround - burst (or negative)")
+        if r["response"] != r["start"] - r["arrival"] or r["response"] < 0:
+            problems.append(f"{pid}: response != first start - arrival (or negative)")
+        segs = [(s, e) for p, s, e in gantt if p == pid]
+        if sum(e - s for s, e in segs) != r["burst"]:
+            problems.append(f"{pid}: CPU time in the chart differs from its burst time")
+        if segs and (segs[0][0] != r["start"] or segs[-1][1] != r["completion"] or segs[0][0] < r["arrival"]):
+            problems.append(f"{pid}: start/completion disagree with the chart")
+    n = len(result["rows"])
+    for key, col in (("avg_waiting", "waiting"), ("avg_turnaround", "turnaround"), ("avg_response", "response")):
+        if abs(result[key] - sum(r[col] for r in result["rows"]) / n) > 0.006:
+            problems.append(f"{key} does not equal the mean of its column")
+    return problems
 
 
 def gantt_text(gantt):

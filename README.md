@@ -129,3 +129,16 @@ lab manuals and past papers go in `corpus/institutional/`.
 | 6 | Citations | ✅ every answer lists source file + page/section |
 | 7 | Verified practice problems | ✅ |
 | 8 | Evaluation vs base model | ✅ 109 prompts: base 108, fine-tuned 107 (guard replaced 8 base answers vs 0). Details in `finetune/TRAINING_RECORD.md` |
+
+
+## Verification and evaluation
+
+* **Numbers** come only from `scheduler.py`; every result is re-checked against the definitions (`check_invariants`) and, in
+  tests, against an independent reference simulator (`eval/reference_sim.py`). Conventions: lower priority number = higher
+  priority; ties by arrival, then input order; preemptive algorithms preempt only for a strictly better key; Round Robin queues an
+  arrival at a quantum boundary before the preempted process; context switches cost zero time; invalid input is rejected.
+* **Concept answers** from the model go through `concept_check.py` (fact rules, contradictions, unsupported claims, missing
+  essential points); a failed check is regenerated once, then replaced by the vetted course text. Failures are logged to
+  `logs/verification.jsonl`.
+* Each answer carries an honest `status` shown in the app (verified / fact-checked / vetted text / nothing to verify).
+* `python -m eval.run_eval` runs the 185-case evaluation suite; see `eval/README.md`.

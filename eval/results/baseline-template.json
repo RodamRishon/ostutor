@@ -1,0 +1,3540 @@
+{
+ "summary": {
+  "tag": "baseline-template",
+  "mode": "grounded template (no LLM running)",
+  "total": 185,
+  "passed": 149,
+  "failed": 36,
+  "pass_rate": 80.5,
+  "by_category": {
+   "A": [
+    20,
+    26
+   ],
+   "B": [
+    23,
+    27
+   ],
+   "D": [
+    17,
+    21
+   ],
+   "E": [
+    5,
+    8
+   ],
+   "F": [
+    19,
+    23
+   ],
+   "G": [
+    11,
+    22
+   ],
+   "M": [
+    8,
+    9
+   ],
+   "N": [
+    33,
+    36
+   ],
+   "S": [
+    10,
+    10
+   ],
+   "X": [
+    3,
+    3
+   ]
+  },
+  "failures_by_stage": {
+   "generation": 32,
+   "retrieval": 1,
+   "numerical": 3
+  },
+  "retrieval_evidence_rate": 99.3,
+  "paraphrase_groups": 27,
+  "inconsistent_groups": [
+   "a-cpusched",
+   "d-starve",
+   "d-convoy",
+   "d-quantum",
+   "f-aging",
+   "f-rrstarve",
+   "f-prio-why"
+  ],
+  "distinct_questions": 151
+ },
+ "results": [
+  {
+   "id": "a-cpusched-1",
+   "cat": "A",
+   "group": "a-cpusched",
+   "q": "What is CPU scheduling?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.1,
+   "answer": "CPU scheduling is the operating system's decision about which process in the ready queue gets the CPU next. Because a process alternates between CPU bursts and I/O bursts, the CPU would sit idle during I/O if nothing else could run. The scheduler keeps the CPU busy by switching to another ready process whenever the running one blocks, finishes, or is preempted. The goal is to maximise CPU utilisation and throughput while minimising waiting time, turnaround time and response time.",
+   "hits": [
+    "What is CPU scheduling?",
+    "Introduction",
+    "What is the purpose of CPU scheduling?"
+   ]
+  },
+  {
+   "id": "a-cpusched-2",
+   "cat": "A",
+   "group": "a-cpusched",
+   "q": "explain cpu scheduling",
+   "ok": false,
+   "reason": "missing fact: select|choose|decid|decision|pick|alloc",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Here is what the course material says:\n\n- Imagine one cashier (the CPU) and a line of customers (the processes). [1]\n- CPU Scheduling — Analogies, Comparisons and Common Doubts. [2]",
+   "hits": [
+    "Explain CPU scheduling in simple words with a real-life analogy.",
+    "Introduction",
+    "Explain how to solve a CPU scheduling numerical step by step"
+   ]
+  },
+  {
+   "id": "a-cpusched-3",
+   "cat": "A",
+   "group": "a-cpusched",
+   "q": "Define CPU scheduling in operating systems.",
+   "ok": false,
+   "reason": "missing fact: ready (queue|process)|processes",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Real operating systems do not use one of the textbook algorithms in its pure form; they combine ideas. Windows uses a priority-based, preemptive scheduler with 32 priority levels: the highest-priority ready thread runs, threads of equal priority share the CPU in Round Robin fashion with a time quantum, and the priority of ordinary threads is adjusted dynamically (for example raised after waiting for I/O), which is similar to a multilevel feedback queue. Linux uses the Completely Fair Scheduler (CFS), which always runs the task with the smallest virtual runtime to give every task a fair share of the CPU; from Linux 6.6 its selection rule was replaced by EEVDF (Earliest Eligible Virtual Deadli",
+   "hits": [
+    "Which scheduling algorithms do real operating systems like Windows and Linux use?",
+    "What is CPU scheduling?",
+    "What is preemptive scheduling?"
+   ]
+  },
+  {
+   "id": "a-why-1",
+   "cat": "A",
+   "group": "a-why",
+   "q": "Why is CPU scheduling necessary?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "CPU scheduling is needed because the CPU is much faster than I/O devices and there are usually more ready processes than CPUs. Without scheduling, the CPU would sit idle whenever a process waits for I/O, and nothing would decide which of several ready processes runs next. A scheduler keeps the CPU busy and chooses the order so that the system meets its goals: high CPU utilisation and throughput, low waiting, turnaround and response time, and fairness between processes.",
+   "hits": [
+    "Why is CPU scheduling needed?",
+    "Introduction",
+    "What is the purpose of CPU scheduling?"
+   ]
+  },
+  {
+   "id": "a-why-2",
+   "cat": "A",
+   "group": "a-why",
+   "q": "why do we need cpu scheduling in an os",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "CPU scheduling is needed because the CPU is much faster than I/O devices and there are usually more ready processes than CPUs. Without scheduling, the CPU would sit idle whenever a process waits for I/O, and nothing would decide which of several ready processes runs next. A scheduler keeps the CPU busy and chooses the order so that the system meets its goals: high CPU utilisation and throughput, low waiting, turnaround and response time, and fairness between processes.",
+   "hits": [
+    "Why is CPU scheduling needed?",
+    "Does Round Robin need to know the burst time in advance?",
+    "Does non-preemptive Priority need to know the burst time in advance?"
+   ]
+  },
+  {
+   "id": "a-process",
+   "cat": "A",
+   "group": null,
+   "q": "What is a process?",
+   "ok": false,
+   "reason": "missing fact: program (in|under) execution|running program|instance of a (running )?",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "SJF deliberately favours short processes: it picks the shortest burst first, so short processes run almost immediately and the average waiting time is the minimum possible, but long jobs can starve. Round Robin does not prioritise short processes: it gives every process one quantum in cyclic order. A short process that fits in one quantum finishes in its first turn, but it may have to wait a turn for each process ahead of it. SJF wins on average waiting time; Round Robin wins on fairness and response time, and under standard assumptions no process starves.",
+   "hits": [
+    "Compare SJF and Round Robin for short processes",
+    "How does SJF handle a newly arrived process?",
+    "How does FCFS handle a newly arrived process?"
+   ]
+  },
+  {
+   "id": "a-burst",
+   "cat": "A",
+   "group": null,
+   "q": "What is a CPU burst?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "A CPU burst is a stretch of time in which a process executes instructions on the CPU. An I/O burst is a stretch in which the process waits for an input or output operation to finish. A process alternates between the two until it terminates. The burst time used in scheduling numericals is the length of the CPU burst. Most real bursts are short, and a few are very long, which is why SJF-style prediction works reasonably well.",
+   "hits": [
+    "What is the difference between a CPU burst and an I/O burst?",
+    "What is burst time?",
+    "What is the formula for the exponential average used to predict the next CPU burst?"
+   ]
+  },
+  {
+   "id": "a-states-1",
+   "cat": "A",
+   "group": "a-states",
+   "q": "What are the states of a process?",
+   "ok": false,
+   "reason": "missing fact: ready",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "A newly arrived process, even a shorter one, must wait until the running process finishes its burst.",
+   "hits": [
+    "How does SJF handle a newly arrived process?",
+    "How does FCFS handle a newly arrived process?",
+    "How does SRTF handle a newly arrived process?"
+   ]
+  },
+  {
+   "id": "a-states-2",
+   "cat": "A",
+   "group": "a-states",
+   "q": "Explain the process states in an operating system.",
+   "ok": false,
+   "reason": "missing fact: ready",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Here is what the course material says:\n\n- For every switch, the operating system must save the state of the currently running process, followed by loading the next process state, which will run on the CPU. [1]\n- The process state includes all the registers that the process may be using, especially the program counter, plus any other operating system specific data that may be necessary. [3]",
+   "hits": [
+    "wikipedia/Context_switch.txt",
+    "Why does Round Robin have higher context-switch overhead?",
+    "wikipedia/Context_switch.txt"
+   ]
+  },
+  {
+   "id": "a-dispatcher-1",
+   "cat": "A",
+   "group": "a-dispatcher",
+   "q": "What is a dispatcher?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The ready queue stores the processes that can run, and the scheduler picks one from it. The dispatcher then actually gives the CPU to the chosen process by switching context, switching to user mode and jumping to the right place in the program. The scheduler decides, the dispatcher acts.",
+   "hits": [
+    "Why do we need a ready queue and a dispatcher?",
+    "What is the role of the dispatcher?",
+    "wikipedia/Scheduling_computing.txt"
+   ]
+  },
+  {
+   "id": "a-dispatcher-2",
+   "cat": "A",
+   "group": "a-dispatcher",
+   "q": "what does the dispatcher do",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The ready queue stores the processes that can run, and the scheduler picks one from it. The dispatcher then actually gives the CPU to the chosen process by switching context, switching to user mode and jumping to the right place in the program. The scheduler decides, the dispatcher acts.",
+   "hits": [
+    "Why do we need a ready queue and a dispatcher?",
+    "What is the role of the dispatcher?",
+    "wikipedia/Scheduling_computing.txt"
+   ]
+  },
+  {
+   "id": "a-ctx-1",
+   "cat": "A",
+   "group": "a-ctx",
+   "q": "What is a context switch?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "A context switch is the act of saving the state of the currently running process and loading the saved state of the next process to run. The state, including the program counter, registers and memory-management information, is stored in the process control block (PCB). Context switches happen whenever the scheduler moves the CPU from one process to another, for example when a Round Robin quantum expires. They are pure overhead: no user work is done during the switch, so systems try to keep them infrequent.",
+   "hits": [
+    "What is a context switch?",
+    "What is the context-switch overhead of SRTF?",
+    "What is the context-switch overhead of FCFS?"
+   ]
+  },
+  {
+   "id": "a-ctx-2",
+   "cat": "A",
+   "group": "a-ctx",
+   "q": "explain context switching",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "A context switch is the act of saving the state of the currently running process and loading the saved state of the next process to run. The state, including the program counter, registers and memory-management information, is stored in the process control block (PCB). Context switches happen whenever the scheduler moves the CPU from one process to another, for example when a Round Robin quantum expires. They are pure overhead: no user work is done during the switch, so systems try to keep them infrequent.",
+   "hits": [
+    "What is a context switch?",
+    "What is the context-switch overhead of SRTF?",
+    "What is the context-switch overhead of FCFS?"
+   ]
+  },
+  {
+   "id": "a-schdisp-1",
+   "cat": "A",
+   "group": "a-schdisp",
+   "q": "What is the difference between a scheduler and a dispatcher?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The ready queue stores the processes that can run, and the scheduler picks one from it. The dispatcher then actually gives the CPU to the chosen process by switching context, switching to user mode and jumping to the right place in the program. The scheduler decides, the dispatcher acts.",
+   "hits": [
+    "Why do we need a ready queue and a dispatcher?",
+    "What is a scheduler?",
+    "What is the role of the dispatcher?"
+   ]
+  },
+  {
+   "id": "a-schdisp-2",
+   "cat": "A",
+   "group": "a-schdisp",
+   "q": "scheduler vs dispatcher",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "A scheduler is the part of the operating system that decides which process or job gets a resource next. In CPU scheduling, the short-term (CPU) scheduler chooses which process in the ready queue runs on the CPU next, and it runs very often, so it must be fast. The long-term (job) scheduler decides which jobs are admitted into memory, and the medium-term scheduler swaps processes out of and back into memory. The dispatcher then gives the CPU to the process the scheduler chose.",
+   "hits": [
+    "What is a scheduler?",
+    "Why do we need a ready queue and a dispatcher?",
+    "What is the role of the dispatcher?"
+   ]
+  },
+  {
+   "id": "a-queues",
+   "cat": "A",
+   "group": null,
+   "q": "What are ready queues and waiting queues?",
+   "ok": false,
+   "reason": "missing fact: (wait|device|i/o|block).{0,20}queue",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The ready queue holds all processes that are in memory, ready to run and waiting only for the CPU. It is usually a linked list of process control blocks. How it is ordered depends on the algorithm: arrival order for FCFS, burst length for SJF, priority for Priority scheduling and a circular FIFO order for Round Robin.",
+   "hits": [
+    "What is the ready queue?",
+    "Why do we need a ready queue and a dispatcher?",
+    "Define waiting time, turnaround time and response time"
+   ]
+  },
+  {
+   "id": "a-preempt-1",
+   "cat": "A",
+   "group": "a-preempt",
+   "q": "What is preemptive scheduling?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "In preemptive scheduling the operating system can take the CPU away from a running process before its burst is finished, for example when a timer interrupt fires or when a more urgent process arrives. Examples are Round Robin, SRTF and the preemptive version of Priority scheduling. Preemption improves response time, but it adds context-switch overhead and needs care when processes share data.",
+   "hits": [
+    "What is preemptive scheduling?",
+    "What is the difference between preemptive and non-preemptive scheduling?",
+    "What is the difference between preemptive and non-preemptive scheduling?"
+   ]
+  },
+  {
+   "id": "a-preempt-2",
+   "cat": "A",
+   "group": "a-preempt",
+   "q": "explain preemptive scheduling",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "In preemptive scheduling the operating system can take the CPU away from a running process before its burst is finished, for example when a timer interrupt fires or when a more urgent process arrives. Examples are Round Robin, SRTF and the preemptive version of Priority scheduling. Preemption improves response time, but it adds context-switch overhead and needs care when processes share data.",
+   "hits": [
+    "What is preemptive scheduling?",
+    "What is the difference between preemptive and non-preemptive scheduling?",
+    "What is the difference between preemptive and non-preemptive scheduling?"
+   ]
+  },
+  {
+   "id": "a-nonpreempt-1",
+   "cat": "A",
+   "group": "a-nonpreempt",
+   "q": "What is non-preemptive scheduling?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "In non-preemptive scheduling, once a process gets the CPU it keeps it until it finishes its burst or blocks for I/O; the scheduler makes a new decision only when the CPU becomes free. Examples are FCFS, SJF and the non-preemptive version of Priority scheduling. It has low overhead and is simple, but a long process can make everyone else wait.",
+   "hits": [
+    "What is non-preemptive scheduling?",
+    "What is the difference between preemptive and non-preemptive scheduling?",
+    "Which scheduling algorithms are preemptive and which are non-preemptive?"
+   ]
+  },
+  {
+   "id": "a-nonpreempt-2",
+   "cat": "A",
+   "group": "a-nonpreempt",
+   "q": "explain nonpreemptive scheduling",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "In non-preemptive scheduling, once a process gets the CPU it keeps it until it finishes its burst or blocks for I/O; the scheduler makes a new decision only when the CPU becomes free. Examples are FCFS, SJF and the non-preemptive version of Priority scheduling. It has low overhead and is simple, but a long process can make everyone else wait.",
+   "hits": [
+    "What is non-preemptive scheduling?",
+    "Which scheduling algorithms are preemptive and which are non-preemptive?",
+    "What is the difference between preemptive and non-preemptive scheduling?"
+   ]
+  },
+  {
+   "id": "a-pre-vs-non",
+   "cat": "A",
+   "group": null,
+   "q": "What is the difference between preemptive and non-preemptive scheduling?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Non-preemptive scheduling lets a process keep the CPU until it finishes its burst or blocks; preemptive scheduling lets the operating system take the CPU away mid-burst (on a timer interrupt or a more urgent arrival), which improves response time at the cost of more context switches. Who controls the CPU: Non-preemptive - The running process keeps it until it finishes its burst or blocks for I/O; Preemptive - The operating system can take it away before the burst is finished. When the scheduler runs: Non-preemptive - Only when the running process finishes or blocks; Preemptive - Also on a timer interrupt and when a more urgent process arrives. Examples: Non-preemptive - FCFS, SJF, Priority (",
+   "hits": [
+    "What is the difference between preemptive and non-preemptive scheduling?",
+    "What is the difference between preemptive and non-preemptive scheduling?",
+    "Which scheduling algorithms are preemptive and which are non-preemptive?"
+   ]
+  },
+  {
+   "id": "a-cpuio-1",
+   "cat": "A",
+   "group": "a-cpuio",
+   "q": "What is the difference between CPU-bound and I/O-bound processes?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "A CPU-bound process computes for long stretches with few I/O waits, while an I/O-bound process uses the CPU in short bursts between frequent I/O waits. Where it spends its time: CPU-bound - Computing on the CPU; I/O-bound - Waiting for input or output. CPU bursts: CPU-bound - Few and long; I/O-bound - Many and short. I/O bursts: CPU-bound - Few and short; I/O-bound - Many and long. Effect on the CPU: CPU-bound - Keeps the CPU busy; I/O-bound - Often leaves the CPU idle while it waits. Scheduling advice: CPU-bound - Gets a lower priority or a lower queue; I/O-bound - Should be favoured: it needs the CPU only briefly and keeps devices busy. A good scheduler favours I/O-bound processes slightly",
+   "hits": [
+    "What is the difference between CPU-bound and I/O-bound processes?",
+    "What is the difference between CPU-bound and I/O-bound processes?",
+    "What are the disadvantages of FCFS?"
+   ]
+  },
+  {
+   "id": "a-cpuio-2",
+   "cat": "A",
+   "group": "a-cpuio",
+   "q": "cpu bound vs io bound",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "A CPU-bound process spends most of its time computing and has a few long CPU bursts. An I/O-bound process spends most of its time waiting for I/O and has many short CPU bursts. A good scheduler favours the I/O-bound processes slightly, because they need the CPU only briefly and then keep the I/O devices busy, which improves overall utilisation.",
+   "hits": [
+    "What is the difference between CPU-bound and I/O-bound processes?",
+    "What is the difference between CPU-bound and I/O-bound processes?",
+    "What are the disadvantages of FCFS?"
+   ]
+  },
+  {
+   "id": "a-dispatchlat",
+   "cat": "A",
+   "group": null,
+   "q": "What is dispatch latency?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The dispatcher is the module that actually gives control of the CPU to the process chosen by the short-term scheduler. Its job has three parts: switching context, switching to user mode, and jumping to the proper location in the user program to resume it. Because it runs on every process switch, it should be as fast as possible. The time it takes to stop one process and start another is called the dispatch latency.",
+   "hits": [
+    "What is the role of the dispatcher?",
+    "Introduction",
+    "Introduction"
+   ]
+  },
+  {
+   "id": "a-criteria",
+   "cat": "A",
+   "group": null,
+   "q": "What are the CPU scheduling criteria?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Scheduling algorithms are compared on five criteria: two to maximise (utilisation, throughput) and three to minimise (turnaround, waiting, response time). CPU utilisation: Goal - Maximise; Meaning - Percentage of time the CPU is busy running processes. Throughput: Goal - Maximise; Meaning - Number of processes completed per unit of time. Turnaround time: Goal - Minimise; Meaning - Completion time − arrival time. Waiting time: Goal - Minimise; Meaning - Turnaround time − burst time (time in the ready queue). Response time: Goal - Minimise; Meaning - First time on the CPU − arrival time. In exam numericals the comparison is usually on average waiting time and average turnaround time.",
+   "hits": [
+    "What are the CPU scheduling criteria?",
+    "What are the CPU scheduling criteria?",
+    "What are the scheduling criteria to maximise and to minimise?"
+   ]
+  },
+  {
+   "id": "a-metrics-def",
+   "cat": "A",
+   "group": null,
+   "q": "Define turnaround time, waiting time and response time.",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Turnaround time is the whole stay from arrival to completion, waiting time is the part of it spent in the ready queue, and response time is only the wait until the first time on the CPU. Measures: Waiting time - Total time spent in the ready queue; Turnaround time - Total time from arrival to completion; Response time - Time from arrival to the first time on the CPU. Formula: Waiting time - turnaround − burst; Turnaround time - completion − arrival; Response time - first start − arrival. Includes the running time?: Waiting time - No; Turnaround time - Yes; Response time - No. Goal: Waiting time - Minimise; Turnaround time - Minimise; Response time - Minimise. In non-preemptive algorithms: Wa",
+   "hits": [
+    "Define waiting time, turnaround time and response time",
+    "What is the difference between waiting time, turnaround time and response time?",
+    "How do you calculate waiting time, turnaround time and response time from a Gantt chart?"
+   ]
+  },
+  {
+   "id": "b-fcfs-what",
+   "cat": "B",
+   "group": null,
+   "q": "What is FCFS?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "First Come First Served is the simplest CPU scheduling algorithm. The process that arrives first in the ready queue gets the CPU first and keeps it until it finishes or blocks for I/O. The ready queue is a plain FIFO queue: new processes join at the tail and the CPU is given to the process at the head. FCFS is non-preemptive.",
+   "hits": [
+    "What is FCFS scheduling?",
+    "First Come First Served (FCFS)",
+    "When is FCFS used?"
+   ]
+  },
+  {
+   "id": "b-sjf-what",
+   "cat": "B",
+   "group": null,
+   "q": "What is SJF?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Shortest Job First schedules the ready process with the smallest next CPU burst. When the CPU becomes free, the scheduler looks only at the processes that have already arrived and picks the one with the shortest burst; ties are broken by arrival time. The basic version is non-preemptive. SJF is provably optimal in the sense that it gives the minimum average waiting time for a given set of processes.",
+   "hits": [
+    "What is SJF scheduling?",
+    "Shortest Job First (SJF) and Shortest Remaining Time First (SRTF)",
+    "Shortest Job First (SJF) and Shortest Remaining Time First (SRTF)"
+   ]
+  },
+  {
+   "id": "b-srtf-what",
+   "cat": "B",
+   "group": null,
+   "q": "What is SRTF?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Shortest Remaining Time First is the preemptive version of SJF. Whenever a new process arrives, its burst is compared with the remaining time of the running process; if the new burst is strictly shorter, the running process is preempted and the new one runs. The preempted process returns to the ready queue with its remaining time. SRTF gives an even lower average waiting time than non-preemptive SJF.",
+   "hits": [
+    "What is SRTF scheduling?",
+    "Explain Shortest Remaining Time First scheduling",
+    "Shortest Job First (SJF) and Shortest Remaining Time First (SRTF)"
+   ]
+  },
+  {
+   "id": "b-priority-what",
+   "cat": "B",
+   "group": null,
+   "q": "What is priority scheduling?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Priority scheduling assigns each process a priority number and always gives the CPU to the ready process with the highest priority. In this course a lower number means a higher priority, so priority 1 runs before priority 3. Processes with equal priority are served in FCFS order. It can be preemptive or non-preemptive.",
+   "hits": [
+    "What is Priority scheduling?",
+    "Explain Priority scheduling",
+    "Priority Scheduling"
+   ]
+  },
+  {
+   "id": "b-rr-what",
+   "cat": "B",
+   "group": null,
+   "q": "What is Round Robin?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Round Robin is a preemptive algorithm designed for time-sharing systems. Each process is given a small unit of CPU time called the time quantum or time slice. The ready queue is a circular FIFO queue: the scheduler takes the process at the head, runs it for at most one quantum, and if it has not finished it is preempted and placed at the tail of the queue.",
+   "hits": [
+    "What is Round Robin scheduling?",
+    "Round Robin (RR)",
+    "Round Robin (RR)"
+   ]
+  },
+  {
+   "id": "b-fcfs-pros",
+   "cat": "B",
+   "group": null,
+   "q": "What are the advantages and disadvantages of FCFS?",
+   "ok": false,
+   "reason": "missing fact: simple|easy",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The average waiting time under FCFS is often long and depends heavily on the arrival order. A long process at the front makes every short process behind it wait, which is the convoy effect. FCFS is non-preemptive, so it gives poor response time and is unsuitable for interactive time-sharing systems. It also lowers CPU and I/O device utilisation when CPU-bound and I/O-bound processes are mixed.",
+   "hits": [
+    "What are the disadvantages of FCFS?",
+    "What are the advantages and disadvantages of Priority scheduling?",
+    "What are the advantages of FCFS?"
+   ]
+  },
+  {
+   "id": "b-sjf-pros",
+   "cat": "B",
+   "group": null,
+   "q": "What are the advantages and disadvantages of SJF?",
+   "ok": false,
+   "reason": "missing fact: minimum|lowest|optimal|least",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "SJF needs to know the next CPU burst length in advance, which is impossible in general, so it must be predicted. It can starve long processes if short ones keep arriving. The non-preemptive version still lets a long job block a newly arrived short job once the long job has started. It is therefore hard to use as a pure short-term scheduler and is more often used as a model for comparison.",
+   "hits": [
+    "What are the disadvantages of SJF?",
+    "What are the advantages and disadvantages of SRTF?",
+    "What are the advantages and disadvantages of HRRN scheduling?"
+   ]
+  },
+  {
+   "id": "b-srtf-pros",
+   "cat": "B",
+   "group": null,
+   "q": "Advantages and disadvantages of SRTF",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Advantages: it gives the lowest possible average waiting time among the standard algorithms, and short jobs get a very fast response. Disadvantages: it needs the burst lengths in advance, it causes more context switches than SJF, and long processes can starve. A process that has been preempted must be resumed later, so the scheduler also has to keep track of remaining times.",
+   "hits": [
+    "What are the advantages and disadvantages of SRTF?",
+    "What are the advantages and disadvantages of HRRN scheduling?",
+    "What are the advantages and disadvantages of Priority scheduling?"
+   ]
+  },
+  {
+   "id": "b-prio-pros",
+   "cat": "B",
+   "group": null,
+   "q": "What are the pros and cons of priority scheduling?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Advantages: important processes are served first, and the priority can be tuned to the needs of the system. SJF is itself a special case. Disadvantages: low-priority processes can starve, which is solved by aging; and a preemptive version adds context-switch overhead. Choosing good priorities is also not easy.",
+   "hits": [
+    "What are the advantages and disadvantages of Priority scheduling?",
+    "What are the advantages and disadvantages of multilevel feedback queue scheduling?",
+    "What are the advantages and disadvantages of SRTF?"
+   ]
+  },
+  {
+   "id": "b-rr-pros",
+   "cat": "B",
+   "group": null,
+   "q": "What are the advantages and disadvantages of Round Robin?",
+   "ok": false,
+   "reason": "missing fact: fair|response|time-?shar|interactive",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The performance depends heavily on the time quantum. Too small a quantum causes many context switches and wastes CPU time; too large a quantum makes it behave like FCFS. The average turnaround time is usually higher than in SJF, and the average waiting time is often higher too. There is more overhead than in the non-preemptive algorithms.",
+   "hits": [
+    "What are the disadvantages of Round Robin?",
+    "What are the advantages of Round Robin?",
+    "What are the advantages and disadvantages of Priority scheduling?"
+   ]
+  },
+  {
+   "id": "b-sjf-use",
+   "cat": "B",
+   "group": null,
+   "q": "When is SJF appropriate?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Shortest Job First schedules the ready process with the smallest next CPU burst. When the CPU becomes free, the scheduler looks only at the processes that have already arrived and picks the one with the shortest burst; ties are broken by arrival time. The basic version is non-preemptive. SJF is provably optimal in the sense that it gives the minimum average waiting time for a given set of processes.",
+   "hits": [
+    "What is SJF scheduling?",
+    "Shortest Job First (SJF) and Shortest Remaining Time First (SRTF)",
+    "Is SJF optimal?"
+   ]
+  },
+  {
+   "id": "b-rr-use",
+   "cat": "B",
+   "group": null,
+   "q": "Which systems is Round Robin suitable for?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Round Robin is best suited to time-sharing and interactive systems where every user needs regular turns. Interactive time-sharing systems.",
+   "hits": [
+    "What kind of system is Round Robin best suited for?",
+    "Why is FCFS not suitable for time-sharing systems?",
+    "Which scheduling algorithm is best for time-sharing systems?"
+   ]
+  },
+  {
+   "id": "b-fcfs-use",
+   "cat": "B",
+   "group": null,
+   "q": "Where is FCFS suitable?",
+   "ok": false,
+   "reason": "missing fact: batch|simple|non-?interactive|low overhead",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "FCFS is non-preemptive, so a process keeps the CPU until it finishes or blocks. A long job can therefore hold the CPU for a long time (the convoy effect) while interactive users wait, which gives poor response time. Time-sharing systems need every user to get the CPU regularly, which requires preemption with a time quantum, as in Round Robin or a multilevel feedback queue.",
+   "hits": [
+    "Why is FCFS not suitable for time-sharing systems?",
+    "What is FCFS scheduling?",
+    "When is FCFS used?"
+   ]
+  },
+  {
+   "id": "b-srtf-sjf-1",
+   "cat": "B",
+   "group": "b-srtf-sjf",
+   "q": "How does SRTF differ from SJF?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Both choose the process with the least CPU time, but SJF is non-preemptive and SRTF is preemptive. In SJF, once a process starts it finishes its burst even if a shorter process arrives. In SRTF, an arriving process with a shorter remaining time than the running process preempts it. SRTF gives a lower or equal average waiting time but needs more context switches.",
+   "hits": [
+    "What is the difference between SJF and SRTF?",
+    "Shortest Job First (SJF) and Shortest Remaining Time First (SRTF)",
+    "Shortest Job First (SJF) and Shortest Remaining Time First (SRTF)"
+   ]
+  },
+  {
+   "id": "b-srtf-sjf-2",
+   "cat": "B",
+   "group": "b-srtf-sjf",
+   "q": "difference between sjf and srtf",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Both choose the process with the least CPU time, but SJF is non-preemptive and SRTF is preemptive. In SJF, once a process starts it finishes its burst even if a shorter process arrives. In SRTF, an arriving process with a shorter remaining time than the running process preempts it. SRTF gives a lower or equal average waiting time but needs more context switches.",
+   "hits": [
+    "What is the difference between SJF and SRTF?",
+    "Shortest Job First (SJF) and Shortest Remaining Time First (SRTF)",
+    "Shortest Job First (SJF) and Shortest Remaining Time First (SRTF)"
+   ]
+  },
+  {
+   "id": "b-srtf-sjf-3",
+   "cat": "B",
+   "group": "b-srtf-sjf",
+   "q": "Is SRTF the same as SJF?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Both choose the process with the least CPU time, but SJF is non-preemptive and SRTF is preemptive. In SJF, once a process starts it finishes its burst even if a shorter process arrives. In SRTF, an arriving process with a shorter remaining time than the running process preempts it. SRTF gives a lower or equal average waiting time but needs more context switches.",
+   "hits": [
+    "What is the difference between SJF and SRTF?",
+    "Shortest Job First (SJF) and Shortest Remaining Time First (SRTF)",
+    "Shortest Job First (SJF) and Shortest Remaining Time First (SRTF)"
+   ]
+  },
+  {
+   "id": "b-prio-pre-1",
+   "cat": "B",
+   "group": "b-prio-pre",
+   "q": "How does preemptive Priority Scheduling differ from non-preemptive Priority Scheduling?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "non-preemptive Priority and preemptive Priority differ in how they choose the next process and in what they cost. non-preemptive Priority picks, among the processes that have arrived, the one with the highest priority (the lowest priority number) and runs it to completion. preemptive Priority always runs the arrived process with the highest priority (the lowest priority number). non-preemptive Priority is non-preemptive, whereas preemptive Priority is preemptive. On starvation, non-preemptive Priority can starve low-priority processes if higher-priority ones keep arriving, which aging fixes, while preemptive Priority can starve low-priority processes, which aging fixes. Average waiting time ",
+   "hits": [
+    "Compare non-preemptive Priority and preemptive Priority in detail",
+    "What is the difference between preemptive and non-preemptive Priority scheduling?",
+    "Compare preemptive and non-preemptive priority scheduling"
+   ]
+  },
+  {
+   "id": "b-prio-pre-2",
+   "cat": "B",
+   "group": "b-prio-pre",
+   "q": "preemptive vs non preemptive priority scheduling",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "non-preemptive Priority and preemptive Priority differ in how they choose the next process and in what they cost. non-preemptive Priority picks, among the processes that have arrived, the one with the highest priority (the lowest priority number) and runs it to completion. preemptive Priority always runs the arrived process with the highest priority (the lowest priority number). non-preemptive Priority is non-preemptive, whereas preemptive Priority is preemptive. On starvation, non-preemptive Priority can starve low-priority processes if higher-priority ones keep arriving, which aging fixes, while preemptive Priority can starve low-priority processes, which aging fixes. Average waiting time ",
+   "hits": [
+    "Compare non-preemptive Priority and preemptive Priority in detail",
+    "What is the difference between preemptive and non-preemptive Priority scheduling?",
+    "Compare preemptive and non-preemptive priority scheduling"
+   ]
+  },
+  {
+   "id": "b-mlq",
+   "cat": "B",
+   "group": null,
+   "q": "What is multilevel queue scheduling?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "A multilevel queue scheduler splits the ready queue into several separate queues, such as foreground (interactive) and background (batch) processes. Each queue has its own scheduling algorithm, for example Round Robin for the foreground queue and FCFS for the background queue. There is also scheduling between the queues, either fixed priority or time slicing. A process stays in the queue it was assigned to.",
+   "hits": [
+    "What is a multilevel queue scheduler?",
+    "What is the difference between a multilevel queue and a multilevel feedback queue?",
+    "What are the advantages and disadvantages of multilevel queue scheduling?"
+   ]
+  },
+  {
+   "id": "b-mlfq",
+   "cat": "B",
+   "group": null,
+   "q": "What is multilevel feedback queue scheduling?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "A multilevel feedback queue is like a multilevel queue except that processes can move between queues based on their behaviour. A new process enters the top queue. A process that uses its full time allotment at a level moves down, so CPU-bound jobs sink to lower-priority queues. Interactive jobs that give up the CPU early stay high. Periodically all jobs may be boosted to the top queue to prevent starvation.",
+   "hits": [
+    "What is a multilevel feedback queue (MLFQ)?",
+    "What is a multilevel feedback queue?",
+    "What is the difference between a multilevel queue and a multilevel feedback queue?"
+   ]
+  },
+  {
+   "id": "b-mlfq-rules",
+   "cat": "B",
+   "group": null,
+   "q": "What are the rules of MLFQ?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The standard rules are: if the priority of A is higher than B, A runs; if the priorities are equal, they run in Round Robin using the quantum of their queue; a new job enters the highest-priority queue; once a job uses up its time allotment at a level it moves down one queue; and after some period S all jobs are moved to the topmost queue (the priority boost), which prevents starvation and handles jobs whose behaviour changes.",
+   "hits": [
+    "What are the rules of MLFQ?",
+    "What is a multilevel feedback queue (MLFQ)?",
+    "What is a multilevel feedback queue?"
+   ]
+  },
+  {
+   "id": "b-aging",
+   "cat": "B",
+   "group": null,
+   "q": "What is aging in CPU scheduling?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Aging is a technique that gradually raises the priority of a process the longer it waits in the ready queue. For example, the scheduler might improve a waiting process's priority by 1 every 15 minutes. Eventually even the lowest-priority process becomes the highest-priority one and gets the CPU. It is needed because plain priority scheduling, and SJF which is a special case of it, can starve low-priority or long processes forever. Aging guarantees that every process makes progress.",
+   "hits": [
+    "What is aging and why is it needed?",
+    "Introduction",
+    "Introduction"
+   ]
+  },
+  {
+   "id": "b-hrrn",
+   "cat": "B",
+   "group": null,
+   "q": "What is Highest Response Ratio Next (HRRN)?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Highest Response Ratio Next is a non-preemptive algorithm that picks the ready process with the highest response ratio, where response ratio = (waiting time + burst time) / burst time. Short jobs have a high ratio at first, as in SJF, but the ratio of a waiting job keeps rising, so long jobs are eventually chosen. HRRN therefore avoids the starvation of SJF by using aging.",
+   "hits": [
+    "What is Highest Response Ratio Next (HRRN)?",
+    "What is the formula for the response ratio in HRRN?",
+    "What are the advantages and disadvantages of HRRN scheduling?"
+   ]
+  },
+  {
+   "id": "b-edf",
+   "cat": "B",
+   "group": null,
+   "q": "What is Earliest Deadline First scheduling?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Real-time scheduling must meet deadlines. Earliest Deadline First (EDF) always runs the ready task with the nearest deadline and is optimal on a single processor when total utilisation is at most 100 percent. Rate Monotonic scheduling gives a fixed priority to each periodic task, higher for a shorter period, and is guaranteed to meet deadlines if the utilisation is below n(2^(1/n) − 1), which is about 69 percent for large n.",
+   "hits": [
+    "What is real-time scheduling, EDF and Rate Monotonic?",
+    "Which scheduling algorithm is best for real-time systems?",
+    "wikipedia/Priority_inversion.txt"
+   ]
+  },
+  {
+   "id": "b-lottery",
+   "cat": "B",
+   "group": null,
+   "q": "How does lottery scheduling work?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Lottery scheduling is a proportional-share algorithm. Each process holds a number of tickets; at every scheduling decision a ticket is drawn at random and the process holding it runs. A process with more tickets is chosen more often, so over time each process receives CPU time roughly in proportion to its tickets. Stride scheduling is the deterministic version of the same idea.",
+   "hits": [
+    "What is lottery scheduling?",
+    "How does non-preemptive Priority scheduling work step by step?",
+    "How does preemptive Priority scheduling work step by step?"
+   ]
+  },
+  {
+   "id": "b-rr-q",
+   "cat": "B",
+   "group": null,
+   "q": "How is the time quantum chosen in Round Robin?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The quantum should be large compared with the context-switch time, so that switching is a small overhead, but small enough to give good response time. A common rule of thumb is that about 80 percent of the CPU bursts should be shorter than the quantum. If the quantum is infinite, Round Robin becomes FCFS; if it shrinks towards zero, each of the n processes appears to run on its own processor at 1/n of the speed (processor sharing).",
+   "hits": [
+    "How should the time quantum be chosen?",
+    "What is the time quantum in Round Robin?",
+    "When would you choose FCFS over Round Robin?"
+   ]
+  },
+  {
+   "id": "b-rr-formula",
+   "cat": "B",
+   "group": null,
+   "q": "What is the maximum time a process waits for its next turn in Round Robin?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "If there are n processes in the ready queue and the quantum is q, no process waits more than (n − 1) × q time units before its next turn. For example, with 5 processes and q = 4, a process gets the CPU again within 16 time units. This bound is why Round Robin gives predictable response time and has no starvation.",
+   "hits": [
+    "What is the maximum waiting time in Round Robin?",
+    "What is the effect of Round Robin on average waiting time?",
+    "How do I compute waiting time in Round Robin?"
+   ]
+  },
+  {
+   "id": "d-minwait-1",
+   "cat": "D",
+   "group": "d-minwait",
+   "q": "Which algorithm minimizes average waiting time?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Answer: SRTF (Shortest Remaining Time First)**\n\n- The average waiting time under SRTF is the lowest of all the standard algorithms. [1]",
+   "hits": [
+    "What is the effect of SRTF on average waiting time?",
+    "What is the effect of SJF on average waiting time?",
+    "What is the effect of FCFS on average waiting time?"
+   ]
+  },
+  {
+   "id": "d-minwait-2",
+   "cat": "D",
+   "group": "d-minwait",
+   "q": "which scheduling algorithm gives the lowest average waiting time",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Answer: SRTF (Shortest Remaining Time First)**\n\n- The average waiting time under SRTF is the lowest of all the standard algorithms. [1]",
+   "hits": [
+    "What is the effect of SRTF on average waiting time?",
+    "Which scheduling algorithm gives the minimum average waiting time?",
+    "What is the effect of SJF on average waiting time?"
+   ]
+  },
+  {
+   "id": "d-minwait-3",
+   "cat": "D",
+   "group": "d-minwait",
+   "q": "optimal algorithm for average waiting time",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "SJF is optimal because moving a short job ahead of a long job reduces the short job's waiting time by the long job's burst, but increases the long job's waiting time only by the short job's burst. Since the short burst is smaller, the total waiting time goes down every time we make such a swap. Keep swapping until the jobs are sorted by burst length and you reach the arrangement with the minimum total, and therefore minimum average, waiting time.",
+   "hits": [
+    "Why is SJF optimal for average waiting time?",
+    "What is the effect of SJF on average waiting time?",
+    "What is the effect of SRTF on average waiting time?"
+   ]
+  },
+  {
+   "id": "d-resp-1",
+   "cat": "D",
+   "group": "d-resp",
+   "q": "Which algorithm provides better response time?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Answer: Round Robin**\n\n- So response time is short and bounded, which suits interactive users. [1]",
+   "hits": [
+    "Why does Round Robin give better response time than FCFS?",
+    "What is the formula for response time?",
+    "Which scheduling algorithm gives the best response time?"
+   ]
+  },
+  {
+   "id": "d-resp-2",
+   "cat": "D",
+   "group": "d-resp",
+   "q": "which cpu scheduling algorithm has the best response time for interactive users",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Round Robin with a suitably small time quantum gives the best and most predictable response time, because every process gets a turn within (n − 1) × q time units. SRTF also gives very good response time to short jobs, but can make long ones wait.",
+   "hits": [
+    "Which scheduling algorithm gives the best response time?",
+    "Which scheduling algorithm is best for batch systems and which for interactive systems?",
+    "Why does Round Robin give better response time than FCFS?"
+   ]
+  },
+  {
+   "id": "d-interactive",
+   "cat": "D",
+   "group": null,
+   "q": "Which algorithm is appropriate for interactive systems?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Answer: Round Robin**\n\n- Interactive time-sharing systems care about response time, so Round Robin or a multilevel feedback queue is the better choice. [1]",
+   "hits": [
+    "Which scheduling algorithm is best for batch systems and which for interactive systems?",
+    "What kind of system is Round Robin best suited for?",
+    "What kind of system is FCFS best suited for?"
+   ]
+  },
+  {
+   "id": "d-batch",
+   "cat": "D",
+   "group": null,
+   "q": "Which algorithm is suitable for batch processing?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Answer: FCFS (First Come First Served)**\n\n- Batch systems care about throughput and turnaround time, so FCFS or SJF/SRTF are suitable. [1]",
+   "hits": [
+    "Which scheduling algorithm is best for batch systems and which for interactive systems?",
+    "Why is FCFS not suitable for time-sharing systems?",
+    "When is FCFS used?"
+   ]
+  },
+  {
+   "id": "d-fair",
+   "cat": "D",
+   "group": null,
+   "q": "Which algorithm is most fair?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Round Robin is the fairest in the sense that every process receives equal CPU time slices in turn and none starves. FCFS is fair in order of arrival but not in service quality. SJF and Priority scheduling can treat long or low-priority processes unfairly.",
+   "hits": [
+    "Which scheduling algorithm is the fairest?",
+    "Which scheduling algorithms do real operating systems like Windows and Linux use?",
+    "What are the advantages of FCFS?"
+   ]
+  },
+  {
+   "id": "d-starve-1",
+   "cat": "D",
+   "group": "d-starve",
+   "q": "Which algorithm can cause starvation?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "SJF, SRTF and Priority scheduling can cause starvation: SJF and SRTF starve long jobs, and Priority scheduling starves low-priority processes. FCFS and Round Robin cannot, since every process eventually reaches the head of the queue. Aging fixes starvation in the first group.",
+   "hits": [
+    "Which scheduling algorithms can cause starvation?",
+    "Does Priority scheduling cause starvation?",
+    "Does SJF cause starvation?"
+   ]
+  },
+  {
+   "id": "d-starve-2",
+   "cat": "D",
+   "group": "d-starve",
+   "q": "which scheduling algorithms can lead to starvation of processes",
+   "ok": false,
+   "reason": "missing fact: sjf|shortest",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Answer: FCFS (First Come First Served)**\n\n- Under standard assumptions (every process that runs eventually finishes or blocks, and the ready queue is finite ahead of a waiting process), FCFS and Round Robin do not cause starvation because every process eventually reaches the head of the queue. [1]",
+   "hits": [
+    "What is starvation in CPU scheduling?",
+    "Does Priority scheduling cause starvation?",
+    "Does SJF cause starvation?"
+   ]
+  },
+  {
+   "id": "d-convoy-1",
+   "cat": "D",
+   "group": "d-convoy",
+   "q": "Which algorithm can suffer from the convoy effect?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The convoy effect happens in FCFS when a long CPU-bound process holds the CPU and many short processes wait behind it, like cars behind a slow truck. The short processes could have finished quickly, but they wait, so the average waiting time rises and I/O devices sit idle. SJF and Round Robin avoid it because short jobs do not wait for the long job to finish.",
+   "hits": [
+    "What is the convoy effect and which algorithm suffers from it?",
+    "Can Priority scheduling and other non-preemptive algorithms suffer from the convoy effect?",
+    "What is the convoy effect?"
+   ]
+  },
+  {
+   "id": "d-convoy-2",
+   "cat": "D",
+   "group": "d-convoy",
+   "q": "which scheduling algorithm has the convoy effect",
+   "ok": false,
+   "reason": "missing fact: fcfs|first[- ]come",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Answer: Round Robin**\n\n- It then has the convoy effect and poor response time. [1]",
+   "hits": [
+    "What happens in Round Robin if the time quantum is very large?",
+    "What is the convoy effect?",
+    "What is the convoy effect and which algorithm suffers from it?"
+   ]
+  },
+  {
+   "id": "d-quantum-1",
+   "cat": "D",
+   "group": "d-quantum",
+   "q": "What are the effects of increasing the Round Robin time quantum?",
+   "ok": false,
+   "reason": "missing fact: fcfs|context switch|response|overhead",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The time quantum, or time slice, is the maximum continuous CPU time a process may use before it is preempted and sent to the back of the ready queue. It is typically 10 to 100 milliseconds in real systems. In numericals it is given in time units, for example q = 4.",
+   "hits": [
+    "What is the time quantum in Round Robin?",
+    "What happens in Round Robin if the time quantum is very large?",
+    "What is the effect of Round Robin on average waiting time?"
+   ]
+  },
+  {
+   "id": "d-quantum-2",
+   "cat": "D",
+   "group": "d-quantum",
+   "q": "what happens if the time quantum in round robin is very large",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "If the quantum is larger than the longest CPU burst, no process is ever preempted, so Round Robin behaves exactly like FCFS. It then has the convoy effect and poor response time.",
+   "hits": [
+    "What happens in Round Robin if the time quantum is very large?",
+    "What is the time quantum in Round Robin?",
+    "What happens in Round Robin if the time quantum is very small?"
+   ]
+  },
+  {
+   "id": "d-quantum-3",
+   "cat": "D",
+   "group": "d-quantum",
+   "q": "what if the quantum is too small in rr",
+   "ok": false,
+   "reason": "missing fact: fcfs|context switch|response|overhead",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "If the quantum is very small, the CPU spends most of its time switching between processes instead of doing useful work, so the throughput and the average turnaround time get worse. In the limit it approximates processor sharing, in which each process seems to run on its own slower processor.",
+   "hits": [
+    "What happens in Round Robin if the time quantum is very small?",
+    "What is the time quantum in Round Robin?",
+    "What happens in Round Robin if the time quantum is very large?"
+   ]
+  },
+  {
+   "id": "d-lowwait-unsuit",
+   "cat": "D",
+   "group": null,
+   "q": "Why can an algorithm with low waiting time still be unsuitable for a system?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Waiting time is the total time a process spends in the ready queue over its whole life, including every time it was preempted and had to wait again. Response time is only the time from arrival until the first time the process gets the CPU. In non-preemptive algorithms the two are equal, because the process runs to completion once started. In preemptive algorithms such as Round Robin the waiting time is usually larger than the response time.",
+   "hits": [
+    "What is the difference between waiting time and response time?",
+    "What is the effect of SJF on average waiting time?",
+    "What is the effect of SRTF on average waiting time?"
+   ]
+  },
+  {
+   "id": "d-best-1",
+   "cat": "X",
+   "group": "d-best",
+   "q": "Which CPU scheduling algorithm is the most efficient, and why?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "N",
+   "secs": 0.0,
+   "answer": "No single algorithm is the best in every situation, because the scheduling criteria conflict, so the best choice depends on what the system must optimise. For the lowest average waiting time and turnaround time, SRTF (preemptive SJF) is optimal, and non-preemptive SJF is optimal among non-preemptive algorithms, because running the shortest job first lets the most processes finish early. But they need the next CPU burst length in advance, which in practice can only be predicted, and they can starve long jobs, so they are rarely used in their pure form. For the best response time and fairness, Round Robin is the better choice, because every process gets a turn within (n − 1) × q time units, at",
+   "hits": [
+    "Which CPU scheduling algorithm is the best or most efficient, and why?",
+    "Why is SJF considered the most efficient scheduling algorithm?",
+    "Which scheduling algorithm gives the best response time?"
+   ]
+  },
+  {
+   "id": "d-best-2",
+   "cat": "X",
+   "group": "d-best",
+   "q": "what is the best cpu scheduling algorithm",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "N",
+   "secs": 0.0,
+   "answer": "No single algorithm is the best in every situation, because the scheduling criteria conflict, so the best choice depends on what the system must optimise. For the lowest average waiting time and turnaround time, SRTF (preemptive SJF) is optimal, and non-preemptive SJF is optimal among non-preemptive algorithms, because running the shortest job first lets the most processes finish early. But they need the next CPU burst length in advance, which in practice can only be predicted, and they can starve long jobs, so they are rarely used in their pure form. For the best response time and fairness, Round Robin is the better choice, because every process gets a turn within (n − 1) × q time units, at",
+   "hits": [
+    "Which CPU scheduling algorithm is the best or most efficient, and why?",
+    "Which scheduling algorithm gives the best response time?",
+    "Which scheduling algorithm is best for time-sharing systems?"
+   ]
+  },
+  {
+   "id": "d-best-3",
+   "cat": "X",
+   "group": "d-best",
+   "q": "which scheduling algorithm is best overall",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "N",
+   "secs": 0.0,
+   "answer": "No single algorithm is the best in every situation, because the scheduling criteria conflict, so the best choice depends on what the system must optimise. For the lowest average waiting time and turnaround time, SRTF (preemptive SJF) is optimal, and non-preemptive SJF is optimal among non-preemptive algorithms, because running the shortest job first lets the most processes finish early. But they need the next CPU burst length in advance, which in practice can only be predicted, and they can starve long jobs, so they are rarely used in their pure form. For the best response time and fairness, Round Robin is the better choice, because every process gets a turn within (n − 1) × q time units, at",
+   "hits": [
+    "Which CPU scheduling algorithm is the best or most efficient, and why?",
+    "Which scheduling algorithm gives the best response time?",
+    "Which scheduling algorithm is best for batch systems and which for interactive systems?"
+   ]
+  },
+  {
+   "id": "d-sjf-vs-rr",
+   "cat": "D",
+   "group": null,
+   "q": "Compare SJF and Round Robin.",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "SJF and Round Robin differ in how they choose the next process and in what they cost. SJF picks, among the processes that have arrived, the one with the smallest burst time and runs it to completion. Round Robin serves a circular FIFO ready queue and gives each process at most one time quantum before moving it to the tail. SJF is non-preemptive, whereas Round Robin is preemptive. On starvation, SJF can starve long jobs if shorter jobs keep arriving, while Round Robin does not starve a ready process under standard assumptions (a finite quantum and a finite ready queue), because every process gets the CPU within (n − 1) × q time units. Average waiting time under SJF is the minimum among non-pr",
+   "hits": [
+    "Compare SJF and Round Robin in detail",
+    "Compare SJF and Round Robin for short processes",
+    "Compare FCFS, SJF, Priority and Round Robin in a table."
+   ]
+  },
+  {
+   "id": "d-fcfs-vs-rr",
+   "cat": "D",
+   "group": null,
+   "q": "Compare FCFS and Round Robin.",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "FCFS and Round Robin differ in how they choose the next process and in what they cost. FCFS runs the ready process that arrived first, strictly in arrival order. Round Robin serves a circular FIFO ready queue and gives each process at most one time quantum before moving it to the tail. FCFS is non-preemptive, whereas Round Robin is preemptive. On starvation, FCFS does not normally starve a process, because every process eventually reaches the head of the FIFO queue as long as the processes ahead of it terminate (a long wait behind a long job is the convoy effect, not starvation), while Round Robin does not starve a ready process under standard assumptions (a finite quantum and a finite ready",
+   "hits": [
+    "Compare FCFS and Round Robin in detail",
+    "Compare FCFS and Round Robin",
+    "Compare FCFS, SJF, Priority and Round Robin in a table."
+   ]
+  },
+  {
+   "id": "d-fcfs-vs-sjf",
+   "cat": "D",
+   "group": null,
+   "q": "difference between fcfs and sjf",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "FCFS and SJF differ in how they choose the next process and in what they cost. FCFS runs the ready process that arrived first, strictly in arrival order. SJF picks, among the processes that have arrived, the one with the smallest burst time and runs it to completion. Both are non-preemptive. On starvation, FCFS does not normally starve a process, because every process eventually reaches the head of the FIFO queue as long as the processes ahead of it terminate (a long wait behind a long job is the convoy effect, not starvation), while SJF can starve long jobs if shorter jobs keep arriving. Average waiting time under FCFS is often long and very sensitive to the order of arrival, while under SJ",
+   "hits": [
+    "Compare FCFS and SJF in detail",
+    "Compare FCFS and SJF",
+    "Compare FCFS, SJF, Priority and Round Robin in a table."
+   ]
+  },
+  {
+   "id": "d-all",
+   "cat": "D",
+   "group": null,
+   "q": "Compare all the CPU scheduling algorithms in a table.",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "FCFS: non-preemptive, simple, no starvation, convoy effect, high average waiting time. SJF: non-preemptive, minimum average waiting time, needs burst prediction, starvation of long jobs. SRTF: preemptive, even lower average waiting time, more context switches, starvation. Priority: preemptive or non-preemptive, serves important work first, starvation of low priority solved by aging. Round Robin: preemptive, fair, good response time, no starvation, depends on the quantum, more overhead.",
+   "hits": [
+    "Compare FCFS, SJF, Priority and Round Robin in a table.",
+    "What are the different types of CPU scheduling algorithms?",
+    "What is FCFS scheduling?"
+   ]
+  },
+  {
+   "id": "d-tat-vs-rt",
+   "cat": "D",
+   "group": null,
+   "q": "What is the difference between waiting time and response time?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Turnaround time is the whole stay from arrival to completion, waiting time is the part of it spent in the ready queue, and response time is only the wait until the first time on the CPU. Measures: Waiting time - Total time spent in the ready queue; Turnaround time - Total time from arrival to completion; Response time - Time from arrival to the first time on the CPU. Formula: Waiting time - turnaround − burst; Turnaround time - completion − arrival; Response time - first start − arrival. Includes the running time?: Waiting time - No; Turnaround time - Yes; Response time - No. Goal: Waiting time - Minimise; Turnaround time - Minimise; Response time - Minimise. In non-preemptive algorithms: Wa",
+   "hits": [
+    "What is the difference between waiting time and response time?",
+    "What is the difference between waiting time, turnaround time and response time?",
+    "Define waiting time, turnaround time and response time"
+   ]
+  },
+  {
+   "id": "e-sjf-ds",
+   "cat": "E",
+   "group": null,
+   "q": "What data structure is used to implement SJF efficiently?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "SJF can be implemented with a min-heap (priority queue) keyed on burst time, so each decision takes O(log n).",
+   "hits": [
+    "How is SJF implemented, and what data structure does it use?",
+    "How is SRTF implemented, and what data structure does it use?",
+    "What kind of system is SJF best suited for?"
+   ]
+  },
+  {
+   "id": "e-rr-ds",
+   "cat": "E",
+   "group": null,
+   "q": "What data structure does Round Robin use for the ready queue?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Round Robin needs a circular FIFO queue and a timer interrupt, so each decision takes constant time.",
+   "hits": [
+    "How is Round Robin implemented, and what data structure does it use?",
+    "What is the ready queue?",
+    "How is SJF implemented, and what data structure does it use?"
+   ]
+  },
+  {
+   "id": "e-sjf-cx",
+   "cat": "E",
+   "group": null,
+   "q": "What is the time complexity of picking the next process in SJF?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Each SJF scheduling decision takes O(n) if the scheduler scans the ready queue for the shortest burst, or O(log n) if the ready queue is a min-heap (priority queue) keyed on burst time. Sorting n processes by burst time up front, as in a simple numerical, takes O(n log n).",
+   "hits": [
+    "What is the time complexity of SJF scheduling?",
+    "What is the time complexity of scheduling algorithms?",
+    "Compare SJF and Round Robin for short processes"
+   ]
+  },
+  {
+   "id": "e-ctx-overhead",
+   "cat": "E",
+   "group": null,
+   "q": "How does context switching affect scheduling performance?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "A smaller quantum means more context switches, because processes are preempted more often. If a context switch takes s time units and the quantum is q, the fraction of CPU time lost to switching is about s divided by (q + s). For example, with q = 4 and s = 1, 20 percent of the time is wasted. A larger quantum cuts the overhead but weakens the responsiveness.",
+   "hits": [
+    "How does the time quantum affect context switches and overhead?",
+    "What is the context-switch overhead of SRTF?",
+    "What is the context-switch overhead of FCFS?"
+   ]
+  },
+  {
+   "id": "e-overhead-rr",
+   "cat": "E",
+   "group": null,
+   "q": "Which algorithm has the highest scheduling overhead?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Answer: Round Robin**\n\n- Round Robin has the highest, because it switches at every quantum expiry context-switch overhead. [1]",
+   "hits": [
+    "What is the context-switch overhead of Round Robin?",
+    "Compare the algorithms on context-switch overhead",
+    "Which scheduling algorithm gives the highest CPU utilisation?"
+   ]
+  },
+  {
+   "id": "e-theory-prac",
+   "cat": "E",
+   "group": null,
+   "q": "Why is SJF not practical in real systems even though it is optimal?",
+   "ok": false,
+   "reason": "missing fact: advance|future|impossible|exponential",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "Y",
+   "secs": 0.0,
+   "answer": "Yes, for average waiting time when the burst lengths are known: Shortest Job First gives the minimum average waiting time for a set of processes that are available together, and it is a very good choice otherwise. With staggered arrivals the preemptive version, SRTF, can do even better. SJF is not optimal for fairness, because long jobs can starve.",
+   "hits": [
+    "Is SJF optimal?",
+    "Is SRTF optimal?",
+    "Why is SJF optimal for average waiting time?"
+   ]
+  },
+  {
+   "id": "e-sim-cx",
+   "cat": "E",
+   "group": null,
+   "q": "What is the time complexity of simulating FCFS for n processes?",
+   "ok": false,
+   "reason": "missing fact: o\\(n log n\\)|o\\(n\\)|n log n|sort",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "If two processes arrive at the same time, the one that comes first in the process list (the lower process number) runs first.",
+   "hits": [
+    "What happens in FCFS when two processes have the same arrival time or priority?",
+    "What is the time complexity of scheduling algorithms?",
+    "What is the time complexity of SJF scheduling?"
+   ]
+  },
+  {
+   "id": "e-space",
+   "cat": "E",
+   "group": null,
+   "q": "What is the space complexity of the ready queue?",
+   "ok": false,
+   "reason": "missing fact: o\\(n\\)|n processes|linear|proportional",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.1,
+   "answer": "The ready queue holds all processes that are in memory, ready to run and waiting only for the CPU. It is usually a linked list of process control blocks. How it is ordered depends on the algorithm: arrival order for FCFS, burst length for SJF, priority for Priority scheduling and a circular FIFO order for Round Robin.",
+   "hits": [
+    "What is the ready queue?",
+    "Why do we need a ready queue and a dispatcher?",
+    "What is the time complexity of SJF scheduling?"
+   ]
+  },
+  {
+   "id": "f-starv-1",
+   "cat": "F",
+   "group": "f-starv",
+   "q": "What is starvation in CPU scheduling?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Starvation, also called indefinite blocking, is when a ready process waits for the CPU indefinitely because the scheduler keeps choosing other processes. It happens in SJF and SRTF when short jobs keep arriving and a long job is always passed over, and in priority scheduling when higher-priority processes keep arriving and a low-priority process never gets its turn. Under standard assumptions (every process that runs eventually finishes or blocks, and the ready queue is finite ahead of a waiting process), FCFS and Round Robin do not cause starvation because every process eventually reaches the head of the queue. Waiting a long time behind a long job in FCFS is the convoy effect, which is a d",
+   "hits": [
+    "What is starvation in CPU scheduling?",
+    "Compare the algorithms on starvation",
+    "Does Priority scheduling cause starvation?"
+   ]
+  },
+  {
+   "id": "f-starv-2",
+   "cat": "F",
+   "group": "f-starv",
+   "q": "define starvation",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.1,
+   "answer": "Starvation, also called indefinite blocking, is when a ready process waits for the CPU indefinitely because the scheduler keeps choosing other processes. It happens in SJF and SRTF when short jobs keep arriving and a long job is always passed over, and in priority scheduling when higher-priority processes keep arriving and a low-priority process never gets its turn. Under standard assumptions (every process that runs eventually finishes or blocks, and the ready queue is finite ahead of a waiting process), FCFS and Round Robin do not cause starvation because every process eventually reaches the head of the queue. Waiting a long time behind a long job in FCFS is the convoy effect, which is a d",
+   "hits": [
+    "What is starvation in CPU scheduling?",
+    "Compare the algorithms on starvation",
+    "Does Priority scheduling cause starvation?"
+   ]
+  },
+  {
+   "id": "f-convoy-1",
+   "cat": "F",
+   "group": "f-convoy",
+   "q": "What is the convoy effect?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The convoy effect happens under FCFS when one long CPU-bound process holds the CPU and many short processes queue up behind it, like cars stuck behind a slow truck on a single-lane road. The short processes could have finished quickly, but they all wait for the long one. Meanwhile I/O devices sit idle because the I/O-bound processes are stuck in the ready queue. The result is a high average waiting time and lower CPU and device utilisation. Algorithms that pick the shortest job first, such as SJF, reduce it because short processes are not stuck behind a long one; Round Robin limits it by preempting a long process after one quantum, but it does not choose short jobs first.",
+   "hits": [
+    "What is the convoy effect?",
+    "What is the convoy effect and which algorithm suffers from it?",
+    "What is the difference between the convoy effect and starvation?"
+   ]
+  },
+  {
+   "id": "f-convoy-2",
+   "cat": "F",
+   "group": "f-convoy",
+   "q": "explain convoy effect in fcfs",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The convoy effect happens under FCFS when one long CPU-bound process holds the CPU and many short processes queue up behind it, like cars stuck behind a slow truck on a single-lane road. The short processes could have finished quickly, but they all wait for the long one. Meanwhile I/O devices sit idle because the I/O-bound processes are stuck in the ready queue. The result is a high average waiting time and lower CPU and device utilisation. Algorithms that pick the shortest job first, such as SJF, reduce it because short processes are not stuck behind a long one; Round Robin limits it by preempting a long process after one quantum, but it does not choose short jobs first.",
+   "hits": [
+    "What is the convoy effect?",
+    "What is the convoy effect and which algorithm suffers from it?",
+    "What is the effect of FCFS on average waiting time?"
+   ]
+  },
+  {
+   "id": "f-inversion",
+   "cat": "F",
+   "group": null,
+   "q": "What is priority inversion?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Priority inversion happens when a high-priority process has to wait for a lock held by a low-priority process, and a medium-priority process preempts the low-priority one, so the high-priority process is delayed by an unrelated medium-priority process. It is solved by priority inheritance: the low-priority lock holder temporarily inherits the higher priority until it releases the lock.",
+   "hits": [
+    "What is priority inversion?",
+    "What is Priority scheduling?",
+    "Explain Priority scheduling"
+   ]
+  },
+  {
+   "id": "f-inversion-fix",
+   "cat": "F",
+   "group": null,
+   "q": "How can priority inversion be solved?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Priority inversion happens when a high-priority process has to wait for a lock held by a low-priority process, and a medium-priority process preempts the low-priority one, so the high-priority process is delayed by an unrelated medium-priority process. It is solved by priority inheritance: the low-priority lock holder temporarily inherits the higher priority until it releases the lock.",
+   "hits": [
+    "What is priority inversion?",
+    "Explain Priority scheduling",
+    "What are the advantages and disadvantages of Priority scheduling?"
+   ]
+  },
+  {
+   "id": "f-ctx-excess",
+   "cat": "F",
+   "group": null,
+   "q": "What problem does excessive context switching cause?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "In a non-preemptive algorithm a switch happens only when a process finishes or blocks, so for n processes there are about n − 1 switches. A preemptive algorithm adds a switch at every preemption. In Round Robin a process with burst b and quantum q is interrupted about ⌈b/q⌉ − 1 times. The more preemptions, the larger the overhead.",
+   "hits": [
+    "How many context switches does a scheduling algorithm cause?",
+    "What is the context-switch overhead of SRTF?",
+    "What is a context switch?"
+   ]
+  },
+  {
+   "id": "f-unfair",
+   "cat": "F",
+   "group": null,
+   "q": "How can SJF be unfair?",
+   "ok": false,
+   "reason": "missing fact: long",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Shortest Job First schedules the ready process with the smallest next CPU burst. When the CPU becomes free, the scheduler looks only at the processes that have already arrived and picks the one with the shortest burst; ties are broken by arrival time. The basic version is non-preemptive. SJF is provably optimal in the sense that it gives the minimum average waiting time for a given set of processes.",
+   "hits": [
+    "What is SJF scheduling?",
+    "Shortest Job First (SJF) and Shortest Remaining Time First (SRTF)",
+    "Is SJF optimal?"
+   ]
+  },
+  {
+   "id": "f-longresp",
+   "cat": "F",
+   "group": null,
+   "q": "Why does FCFS give long response times?",
+   "ok": false,
+   "reason": "missing fact: first|arriv|order|queue",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "In FCFS, the response time is equal to the waiting time, which can be very long when a long job is ahead (the convoy effect).",
+   "hits": [
+    "What is the response time behaviour of FCFS?",
+    "Compare response time under FCFS and Round Robin",
+    "Why does Round Robin give better response time than FCFS?"
+   ]
+  },
+  {
+   "id": "f-workload",
+   "cat": "F",
+   "group": null,
+   "q": "Why does the performance of a scheduling algorithm depend on the workload?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Here is what the course material says:\n\n- Which one is worst depends on the workload and on the criterion being measured. [1]\n- This can happen in both preemptive and non-preemptive Priority scheduling, depending on the workload. [2]\n- Whether starvation actually happens depends on the workload: if short jobs stop arriving, the long job eventually runs. [3]",
+   "hits": [
+    "Which scheduling algorithm is the worst or least efficient?",
+    "Why can starvation occur in Priority scheduling?",
+    "Can starvation occur in SJF?"
+   ]
+  },
+  {
+   "id": "f-limits",
+   "cat": "F",
+   "group": null,
+   "q": "What are the limitations of priority scheduling?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Advantages: important processes are served first, and the priority can be tuned to the needs of the system. SJF is itself a special case. Disadvantages: low-priority processes can starve, which is solved by aging; and a preemptive version adds context-switch overhead. Choosing good priorities is also not easy.",
+   "hits": [
+    "What are the advantages and disadvantages of Priority scheduling?",
+    "What are the advantages and disadvantages of multilevel feedback queue scheduling?",
+    "What are the advantages and disadvantages of SRTF?"
+   ]
+  },
+  {
+   "id": "f-aging-1",
+   "cat": "F",
+   "group": "f-aging",
+   "q": "How does aging prevent starvation?",
+   "ok": false,
+   "reason": "missing fact: gradual|increas|rais",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Under standard assumptions Round Robin avoids starvation, because every ready process receives a finite quantum in cyclic order and so gets the CPU within (n − 1) × q time units; it does this by rotating fairly, not by favouring short jobs. SJF does not prevent starvation; it can starve long jobs when shorter jobs keep arriving. SJF does reduce the convoy effect, because short jobs are not stuck behind long ones.",
+   "hits": [
+    "Does Round Robin or SJF prevent starvation?",
+    "Does Priority scheduling cause starvation?",
+    "What is starvation in CPU scheduling?",
+    "What is aging and why is it needed?",
+    "Does SJF cause starvation?"
+   ]
+  },
+  {
+   "id": "f-aging-2",
+   "cat": "F",
+   "group": "f-aging",
+   "q": "why is aging used in priority scheduling",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Aging is a technique that gradually raises the priority of a process the longer it waits in the ready queue. For example, the scheduler might improve a waiting process's priority by 1 every 15 minutes. Eventually even the lowest-priority process becomes the highest-priority one and gets the CPU. It is needed because plain priority scheduling, and SJF which is a special case of it, can starve low-priority or long processes forever. Aging guarantees that every process makes progress.",
+   "hits": [
+    "What is aging and why is it needed?",
+    "Is SJF a priority scheduling algorithm?",
+    "What is Priority scheduling?"
+   ]
+  },
+  {
+   "id": "f-sjfstarve-1",
+   "cat": "F",
+   "group": "f-sjfstarve",
+   "q": "Can starvation occur in SJF?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "Y",
+   "secs": 0.0,
+   "answer": "Yes. SJF always selects the ready process with the shortest CPU burst. If shorter jobs keep arriving while a long job is waiting, there is always a shorter job to pick, so the long job can be passed over again and again and may never get the CPU. This is starvation (indefinite blocking). SRTF makes it more likely, because a running long job can also be preempted by each shorter arrival. Whether starvation actually happens depends on the workload: if short jobs stop arriving, the long job eventually runs. Aging is the usual remedy.",
+   "hits": [
+    "Can starvation occur in SJF?",
+    "Can starvation occur in FCFS?",
+    "Why can starvation occur in Priority scheduling?"
+   ]
+  },
+  {
+   "id": "f-sjfstarve-2",
+   "cat": "F",
+   "group": "f-sjfstarve",
+   "q": "can long jobs starve in shortest job first",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "Y",
+   "secs": 0.0,
+   "answer": "Yes. SJF always selects the ready process with the shortest CPU burst. If shorter jobs keep arriving while a long job is waiting, there is always a shorter job to pick, so the long job can be passed over again and again and may never get the CPU. This is starvation (indefinite blocking). SRTF makes it more likely, because a running long job can also be preempted by each shorter arrival. Whether starvation actually happens depends on the workload: if short jobs stop arriving, the long job eventually runs. Aging is the usual remedy.",
+   "hits": [
+    "Can starvation occur in SJF?",
+    "A student says SJF never causes starvation because every job is eventually the shortest. Is this right?",
+    "Does SJF cause starvation?"
+   ]
+  },
+  {
+   "id": "f-sjfstarve-3",
+   "cat": "F",
+   "group": "f-sjfstarve",
+   "q": "is it possible for a process to starve under sjf",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "Y",
+   "secs": 0.0,
+   "answer": "Yes. SJF always selects the ready process with the shortest CPU burst. If shorter jobs keep arriving while a long job is waiting, there is always a shorter job to pick, so the long job can be passed over again and again and may never get the CPU. This is starvation (indefinite blocking). SRTF makes it more likely, because a running long job can also be preempted by each shorter arrival. Whether starvation actually happens depends on the workload: if short jobs stop arriving, the long job eventually runs. Aging is the usual remedy.",
+   "hits": [
+    "Can starvation occur in SJF?",
+    "Does SJF cause starvation?",
+    "Compare SJF and Round Robin for short processes"
+   ]
+  },
+  {
+   "id": "f-fcfsstarve-1",
+   "cat": "F",
+   "group": "f-fcfsstarve",
+   "q": "Can starvation occur in FCFS?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "N",
+   "secs": 0.0,
+   "answer": "Not in standard FCFS. Processes are served strictly in arrival order, so a waiting process has only finitely many processes ahead of it, and, assuming each of them eventually finishes or blocks, it reaches the head of the queue and gets the CPU. A process can wait a long time behind a long job, but that is the convoy effect: a long, finite delay, not indefinite postponement. Starvation would need an exceptional case, for example a process ahead that never terminates, which is outside the usual assumptions.",
+   "hits": [
+    "Can starvation occur in FCFS?",
+    "Can starvation occur in SJF?",
+    "Why can starvation occur in Priority scheduling?"
+   ]
+  },
+  {
+   "id": "f-fcfsstarve-2",
+   "cat": "F",
+   "group": "f-fcfsstarve",
+   "q": "does fcfs cause starvation",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "N",
+   "secs": 0.0,
+   "answer": "No, not in standard FCFS. The queue is served strictly in arrival order, so, assuming every process ahead of it eventually finishes or blocks, each process reaches the head of the queue and gets the CPU. A process may wait a long time behind a long job; that is the convoy effect (a long but finite delay), not starvation, which means indefinite postponement. Only an unrealistic case such as a process ahead that never terminates would block the queue for ever.",
+   "hits": [
+    "Does FCFS cause starvation?",
+    "Which scheduling algorithms can cause starvation?",
+    "Does Priority scheduling cause starvation?"
+   ]
+  },
+  {
+   "id": "f-fcfsstarve-3",
+   "cat": "F",
+   "group": "f-fcfsstarve",
+   "q": "is starvation possible with first come first served",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "N",
+   "secs": 0.0,
+   "answer": "No, not in standard FCFS. The queue is served strictly in arrival order, so, assuming every process ahead of it eventually finishes or blocks, each process reaches the head of the queue and gets the CPU. A process may wait a long time behind a long job; that is the convoy effect (a long but finite delay), not starvation, which means indefinite postponement. Only an unrealistic case such as a process ahead that never terminates would block the queue for ever.",
+   "hits": [
+    "Does FCFS cause starvation?",
+    "Can starvation occur in FCFS?",
+    "What is FCFS scheduling?"
+   ]
+  },
+  {
+   "id": "f-rrstarve-1",
+   "cat": "F",
+   "group": "f-rrstarve",
+   "q": "Does Round Robin cause starvation?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "N",
+   "secs": 0.0,
+   "answer": "No. Every process in the ready queue gets the CPU within (n − 1) × q time units, so no process waits forever. Round Robin is starvation-free; its drawback is overhead from context switches, not starvation.",
+   "hits": [
+    "Does Round Robin cause starvation?",
+    "A student says Round Robin causes starvation. Is this correct?",
+    "Which scheduling algorithms can cause starvation?"
+   ]
+  },
+  {
+   "id": "f-rrstarve-2",
+   "cat": "F",
+   "group": "f-rrstarve",
+   "q": "can a process starve in rr",
+   "ok": false,
+   "reason": "wrong or missing verdict (starts: 'SJF deliberately favours short processes: it picks the shortest burst ')",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "SJF deliberately favours short processes: it picks the shortest burst first, so short processes run almost immediately and the average waiting time is the minimum possible, but long jobs can starve. Round Robin does not prioritise short processes: it gives every process one quantum in cyclic order. A short process that fits in one quantum finishes in its first turn, but it may have to wait a turn for each process ahead of it. SJF wins on average waiting time; Round Robin wins on fairness and response time, and under standard assumptions no process starves.",
+   "hits": [
+    "Compare SJF and Round Robin for short processes",
+    "Does Round Robin cause starvation?",
+    "A student says Round Robin causes starvation. Is this correct?"
+   ]
+  },
+  {
+   "id": "f-prio-why-1",
+   "cat": "F",
+   "group": "f-prio-why",
+   "q": "Why can starvation occur in Priority Scheduling?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Priority scheduling always gives the CPU to the ready process with the highest priority. A low-priority process can be bypassed repeatedly if higher-priority processes keep arriving or stay ready, so it may wait indefinitely. This can happen in both preemptive and non-preemptive Priority scheduling, depending on the workload. The usual mitigation is aging: the priority of a process is raised gradually the longer it waits, so eventually even a low-priority process becomes the highest-priority one and gets the CPU.",
+   "hits": [
+    "Why can starvation occur in Priority scheduling?",
+    "Can starvation occur in SJF?",
+    "Can starvation occur in FCFS?"
+   ]
+  },
+  {
+   "id": "f-prio-why-2",
+   "cat": "F",
+   "group": "f-prio-why",
+   "q": "why do low priority processes starve",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "Y",
+   "secs": 0.0,
+   "answer": "Yes. A low-priority process can wait indefinitely if higher-priority processes keep arriving. This is indefinite blocking or starvation. The remedy is aging: gradually increasing the priority of processes that wait for a long time so that they eventually reach the highest priority.",
+   "hits": [
+    "Does Priority scheduling cause starvation?",
+    "Why can starvation occur in Priority scheduling?",
+    "What is starvation in CPU scheduling?"
+   ]
+  },
+  {
+   "id": "g-mcq1",
+   "cat": "G",
+   "group": null,
+   "q": "Which of the following algorithms can cause starvation?\n(a) FCFS\n(b) Round Robin\n(c) SJF\n(d) None of these",
+   "ok": false,
+   "reason": "missing fact: \\bsjf\\b|shortest",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Answer: Round Robin**\n\n- Round Robin does not cause starvation: the ready queue is circular, so every process gets the CPU within (n − 1) × q time units, where n is the number of processes and q is the quantum. [1]",
+   "hits": [
+    "A student says Round Robin causes starvation. Is this correct?",
+    "Does SJF cause starvation?",
+    "Which scheduling algorithms can cause starvation?"
+   ]
+  },
+  {
+   "id": "g-mcq2",
+   "cat": "G",
+   "group": null,
+   "q": "Which scheduling algorithm is optimal for minimum average waiting time?\nA. FCFS\nB. SJF\nC. Round Robin\nD. Priority",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Here is what the course material says:\n\n- Shortest Job First gives the minimum average waiting time among non-preemptive algorithms, and Shortest Remaining Time First, its preemptive version, gives the minimum overall for processes with different arrival times. [1]\n- Keep swapping until the jobs are sorted by burst length and you reach the arrangement with the minimum total, and therefore minimum average, waiting time. [2]\n- FCFS: non-preemptive, simple, no starvation, convoy effect, high average waiting time. [3]\n- SJF: non-preemptive, minimum average waiting time, needs burst prediction, starvation of long jobs. [3]",
+   "hits": [
+    "Which scheduling algorithm gives the minimum average waiting time?",
+    "Why is SJF optimal for average waiting time?",
+    "Compare FCFS, SJF, Priority and Round Robin in a table."
+   ]
+  },
+  {
+   "id": "g-mcq3",
+   "cat": "G",
+   "group": null,
+   "q": "In Round Robin, if the time quantum is very large, the algorithm behaves like:\n(a) SJF\n(b) FCFS\n(c) Priority\n(d) SRTF",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The algorithms differ in how they pick the next process, whether they preempt, whether they can starve a process, and what they cost: SJF/SRTF minimise average waiting time, Round Robin gives the best response time, FCFS is the simplest, and Priority serves important work first. Picks next: FCFS - Earliest arrival; SJF - Smallest burst; SRTF - Smallest remaining time; Priority - Highest priority (lowest number); Round Robin - Next in a circular queue, one quantum each. Preemptive?: FCFS - No; SJF - No; SRTF - Yes; Priority - Either; Round Robin - Yes. Starvation: FCFS - No; SJF - Long jobs can starve; SRTF - Long jobs can starve; Priority - Low priority can starve (aging fixes it); Round Rob",
+   "hits": [
+    "Compare FCFS, SJF, SRTF, Priority and Round Robin in a table",
+    "What happens in Round Robin if the time quantum is very large?",
+    "Compare FCFS, SJF, Priority and Round Robin in a table."
+   ]
+  },
+  {
+   "id": "g-mcq4",
+   "cat": "G",
+   "group": null,
+   "q": "The convoy effect is associated with which algorithm?\n(a) Round Robin\n(b) SJF\n(c) FCFS\n(d) Priority",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Answer: FCFS (First Come First Served)**\n\n- Preemptive?: FCFS - No; SJF - No; SRTF - Yes; Priority - Either; Round Robin - Yes. [1]",
+   "hits": [
+    "Compare FCFS, SJF, SRTF, Priority and Round Robin in a table",
+    "Compare FCFS, SJF, Priority and Round Robin in a table.",
+    "Can Priority scheduling and other non-preemptive algorithms suffer from the convoy effect?"
+   ]
+  },
+  {
+   "id": "g-mcq5",
+   "cat": "G",
+   "group": null,
+   "q": "Which of these is a preemptive algorithm?\n(a) FCFS\n(b) non-preemptive SJF\n(c) Round Robin\n(d) non-preemptive priority",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The algorithms differ in how they pick the next process, whether they preempt, whether they can starve a process, and what they cost: SJF/SRTF minimise average waiting time, Round Robin gives the best response time, FCFS is the simplest, and Priority serves important work first. Picks next: FCFS - Earliest arrival; SJF - Smallest burst; SRTF - Smallest remaining time; Priority - Highest priority (lowest number); Round Robin - Next in a circular queue, one quantum each. Preemptive?: FCFS - No; SJF - No; SRTF - Yes; Priority - Either; Round Robin - Yes. Starvation: FCFS - No; SJF - Long jobs can starve; SRTF - Long jobs can starve; Priority - Low priority can starve (aging fixes it); Round Rob",
+   "hits": [
+    "Compare FCFS, SJF, SRTF, Priority and Round Robin in a table",
+    "Which scheduling algorithms are preemptive and which are non-preemptive?",
+    "Compare FCFS, SJF, Priority and Round Robin in a table."
+   ]
+  },
+  {
+   "id": "g-tf1-1",
+   "cat": "G",
+   "group": "g-tf1",
+   "q": "True or false: Round Robin can cause starvation.",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "N",
+   "secs": 0.0,
+   "answer": "No. Every process in the ready queue gets the CPU within (n − 1) × q time units, so no process waits forever. Round Robin is starvation-free; its drawback is overhead from context switches, not starvation.",
+   "hits": [
+    "Does Round Robin cause starvation?",
+    "A student says Round Robin causes starvation. Is this correct?",
+    "Which scheduling algorithms can cause starvation?"
+   ]
+  },
+  {
+   "id": "g-tf1-2",
+   "cat": "G",
+   "group": "g-tf1",
+   "q": "True/False: Round Robin leads to starvation of processes.",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "N",
+   "secs": 0.0,
+   "answer": "No. Every process in the ready queue gets the CPU within (n − 1) × q time units, so no process waits forever. Round Robin is starvation-free; its drawback is overhead from context switches, not starvation.",
+   "hits": [
+    "Does Round Robin cause starvation?",
+    "A student says Round Robin causes starvation. Is this correct?",
+    "Does Priority scheduling cause starvation?"
+   ]
+  },
+  {
+   "id": "g-tf2-1",
+   "cat": "G",
+   "group": "g-tf2",
+   "q": "True or false: SJF is a non-preemptive algorithm.",
+   "ok": false,
+   "reason": "missing fact: true|correct|yes",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "SJF and non-preemptive Priority differ in how they choose the next process and in what they cost. SJF picks, among the processes that have arrived, the one with the smallest burst time and runs it to completion. non-preemptive Priority picks, among the processes that have arrived, the one with the highest priority (the lowest priority number) and runs it to completion. Both are non-preemptive. On starvation, SJF can starve long jobs if shorter jobs keep arriving, while non-preemptive Priority can starve low-priority processes if higher-priority ones keep arriving, which aging fixes. Average waiting time under SJF is the minimum among non-preemptive algorithms, while under non-preemptive Prio",
+   "hits": [
+    "Compare SJF and non-preemptive Priority in detail",
+    "Is SJF preemptive or non-preemptive?",
+    "Summarise SJF in a few lines."
+   ]
+  },
+  {
+   "id": "g-tf2-2",
+   "cat": "G",
+   "group": "g-tf2",
+   "q": "True/False: shortest job first (non-preemptive version) never interrupts a running process.",
+   "ok": false,
+   "reason": "missing fact: true|correct|yes",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The basic SJF algorithm is non-preemptive: once a process starts it runs to the end of its burst. The preemptive version is called Shortest Remaining Time First (SRTF), where a newly arrived process with a shorter burst than the remaining time of the running process takes the CPU.",
+   "hits": [
+    "Is SJF preemptive or non-preemptive?",
+    "A student says SRTF never preempts a process once it has started. Is this right?",
+    "Summarise SJF in a few lines."
+   ]
+  },
+  {
+   "id": "g-tf3",
+   "cat": "G",
+   "group": null,
+   "q": "True or false: In FCFS, a short process can wait a long time behind a long process.",
+   "ok": false,
+   "reason": "missing fact: true|yes|correct",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "If two processes arrive at the same time, the one that comes first in the process list (the lower process number) runs first.",
+   "hits": [
+    "What happens in FCFS when two processes have the same arrival time or priority?",
+    "Summarise FCFS in a few lines.",
+    "What is the effect of FCFS on average waiting time?"
+   ]
+  },
+  {
+   "id": "g-tf4",
+   "cat": "G",
+   "group": null,
+   "q": "True or false: SRTF is the preemptive version of SJF.",
+   "ok": false,
+   "reason": "missing fact: true|yes|correct",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The basic SJF algorithm is non-preemptive: once a process starts it runs to the end of its burst. The preemptive version is called Shortest Remaining Time First (SRTF), where a newly arrived process with a shorter burst than the remaining time of the running process takes the CPU.",
+   "hits": [
+    "Is SJF preemptive or non-preemptive?",
+    "Shortest Job First (SJF) and Shortest Remaining Time First (SRTF)",
+    "Shortest Job First (SJF) and Shortest Remaining Time First (SRTF)"
+   ]
+  },
+  {
+   "id": "g-fill1",
+   "cat": "G",
+   "group": null,
+   "q": "Fill in the blank: The _____ effect occurs in FCFS when short processes wait behind a long process.",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "N",
+   "secs": 0.0,
+   "answer": "Not in standard FCFS. Processes are served strictly in arrival order, so a waiting process has only finitely many processes ahead of it, and, assuming each of them eventually finishes or blocks, it reaches the head of the queue and gets the CPU. A process can wait a long time behind a long job, but that is the convoy effect: a long, finite delay, not indefinite postponement. Starvation would need an exceptional case, for example a process ahead that never terminates, which is outside the usual assumptions.",
+   "hits": [
+    "Can starvation occur in FCFS?",
+    "Summarise FCFS in a few lines.",
+    "What is the effect of FCFS on average waiting time?"
+   ]
+  },
+  {
+   "id": "g-fill2",
+   "cat": "G",
+   "group": null,
+   "q": "Fill in the blank: _____ is a technique that gradually increases the priority of waiting processes.",
+   "ok": false,
+   "reason": "refused as out of scope",
+   "kind": "concept",
+   "blame": "retrieval",
+   "ev_ok": false,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "That question is outside my scope: I only answer questions about CPU scheduling from the course material, and I couldn't find anything relevant to it in my knowledge base. Try asking about FCFS, SJF/SRTF, Priority, Round Robin, or paste a scheduling problem to solve.",
+   "hits": []
+  },
+  {
+   "id": "g-fill3",
+   "cat": "G",
+   "group": null,
+   "q": "Fill in the blank: Turnaround time = Completion time - _____ time.",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Completion time is the clock time at which a process finishes its execution, read from the end of that process's last box in the Gantt chart. It is used to get turnaround time (completion time − arrival time) and then waiting time (turnaround time − burst time).",
+   "hits": [
+    "What is completion time?",
+    "What is the formula for turnaround time?",
+    "What is the formula for completion time?"
+   ]
+  },
+  {
+   "id": "g-short1",
+   "cat": "G",
+   "group": null,
+   "q": "Write a short note on Round Robin scheduling.",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Round Robin (RR) serves a circular FIFO ready queue and gives each process at most one time quantum before moving it to the tail. It is preemptive: a timer interrupt takes the CPU when the quantum expires. On starvation, it does not starve a ready process under standard assumptions (a finite quantum and a finite ready queue), because every process gets the CPU within (n − 1) × q time units. Its average waiting time is usually higher than SJF, but bounded for each turn, and its context-switch overhead is the highest, because it switches at every quantum expiry.",
+   "hits": [
+    "Summarise Round Robin in a few lines.",
+    "What is Round Robin scheduling?",
+    "Round Robin (RR)"
+   ]
+  },
+  {
+   "id": "g-long1",
+   "cat": "G",
+   "group": null,
+   "q": "Explain priority scheduling in detail, with its types, advantages, disadvantages and the problem of starvation.",
+   "ok": false,
+   "reason": "missing fact: preemptive",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "Y",
+   "secs": 0.0,
+   "answer": "Yes. A low-priority process can wait indefinitely if higher-priority processes keep arriving. This is indefinite blocking or starvation. The remedy is aging: gradually increasing the priority of processes that wait for a long time so that they eventually reach the highest priority.",
+   "hits": [
+    "Does Priority scheduling cause starvation?",
+    "What are the advantages and disadvantages of Priority scheduling?",
+    "What are the advantages and disadvantages of multilevel feedback queue scheduling?"
+   ]
+  },
+  {
+   "id": "g-compare1",
+   "cat": "G",
+   "group": null,
+   "q": "Differentiate between FCFS and SJF with respect to waiting time, starvation and preemption.",
+   "ok": false,
+   "reason": "missing fact: fcfs",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "Y",
+   "secs": 0.0,
+   "answer": "Yes. SJF always selects the ready process with the shortest CPU burst. If shorter jobs keep arriving while a long job is waiting, there is always a shorter job to pick, so the long job can be passed over again and again and may never get the CPU. This is starvation (indefinite blocking). SRTF makes it more likely, because a running long job can also be preempted by each shorter arrival. Whether starvation actually happens depends on the workload: if short jobs stop arriving, the long job eventually runs. Aging is the usual remedy.",
+   "hits": [
+    "Can starvation occur in SJF?",
+    "Compare FCFS, SJF, Priority and Round Robin in a table.",
+    "Compare FCFS and SJF in detail"
+   ]
+  },
+  {
+   "id": "g-ar1",
+   "cat": "G",
+   "group": null,
+   "q": "Assertion (A): Round Robin has no starvation. Reason (R): Every ready process receives the CPU within (n-1)*q time units. Is A true, R true, and R the correct explanation of A?",
+   "ok": false,
+   "reason": "missing fact: true|correct|yes",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "N",
+   "secs": 0.0,
+   "answer": "No, that is a common mix-up. Round Robin does not cause starvation: the ready queue is circular, so every process gets the CPU within (n − 1) × q time units, where n is the number of processes and q is the quantum. What Round Robin does cause is extra context-switch overhead and a higher average turnaround time than SJF. Starvation is a problem of SJF, SRTF and priority scheduling, where a process can be passed over again and again.",
+   "hits": [
+    "A student says Round Robin causes starvation. Is this correct?",
+    "Does Round Robin cause starvation?",
+    "Does Round Robin or SJF prevent starvation?"
+   ]
+  },
+  {
+   "id": "g-ar2",
+   "cat": "G",
+   "group": null,
+   "q": "Assertion (A): SJF never causes starvation. Reason (R): SJF always picks the shortest job. Choose: A true R true; A false R true; A true R false; both false.",
+   "ok": false,
+   "reason": "missing fact: a is false|assertion.{0,20}false|false",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "Y",
+   "secs": 0.0,
+   "answer": "Yes. If shorter jobs keep arriving, a long job may be passed over again and again and never get the CPU. That is starvation, also called indefinite blocking. Aging, which gradually raises the priority of a waiting process, is the standard remedy.",
+   "hits": [
+    "Does SJF cause starvation?",
+    "A student says SJF never causes starvation because every job is eventually the shortest. Is this right?",
+    "Can starvation occur in SJF?"
+   ]
+  },
+  {
+   "id": "g-incorrect1",
+   "cat": "G",
+   "group": null,
+   "q": "Which statement is incorrect? (a) FCFS is non-preemptive (b) Round Robin is preemptive (c) SJF never starves a long job (d) Priority scheduling can starve processes",
+   "ok": false,
+   "reason": "missing fact: \\(c\\)|\\bc\\b|sjf never starves|sjf.{0,40}(can|may) starv",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Here is what the course material says:\n\n- FCFS: non-preemptive, simple, no starvation, convoy effect, high average waiting time. [1]\n- SJF: non-preemptive, minimum average waiting time, needs burst prediction, starvation of long jobs. [1]\n- Round Robin: preemptive, fair, good response time, no starvation, depends on the quantum, more overhead. [1]",
+   "hits": [
+    "Compare FCFS, SJF, Priority and Round Robin in a table.",
+    "Is Round Robin preemptive or non-preemptive?",
+    "A student says SJF never causes starvation because every job is eventually the shortest. Is this right?"
+   ]
+  },
+  {
+   "id": "g-concise",
+   "cat": "G",
+   "group": null,
+   "q": "In one line, what is the formula for waiting time?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Waiting time = turnaround time − burst time, which is the same as completion time − arrival time − burst time. It is the total time a process spends in the ready queue. For example, a process that arrives at 2, has burst 5 and completes at 12 has turnaround time 12 − 2 = 10 and waiting time 10 − 5 = 5. Never subtract a constant such as 1.",
+   "hits": [
+    "What is the formula for waiting time?",
+    "What is the formula for average waiting time and average turnaround time?",
+    "How do I compute waiting time in Priority scheduling?"
+   ]
+  },
+  {
+   "id": "g-steps",
+   "cat": "G",
+   "group": null,
+   "q": "Explain step by step how Round Robin selects the next process.",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Put the processes in the ready queue in order of arrival. Take the process at the head. Run it for the time quantum or until it finishes, whichever is smaller. If processes arrived during that slice, add them to the queue first. If the running process still has work left, add it to the tail of the queue behind them; otherwise record its completion time. Repeat until the queue is empty.",
+   "hits": [
+    "How does Round Robin work step by step?",
+    "Does Round Robin prioritize short processes?",
+    "When would you choose FCFS over Round Robin?"
+   ]
+  },
+  {
+   "id": "m-rr-starve-1",
+   "cat": "M",
+   "group": "m-rr-starve",
+   "q": "Why does Round Robin cause starvation?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "N",
+   "secs": 0.0,
+   "answer": "No. Every process in the ready queue gets the CPU within (n − 1) × q time units, so no process waits forever. Round Robin is starvation-free; its drawback is overhead from context switches, not starvation.",
+   "hits": [
+    "Does Round Robin cause starvation?",
+    "A student says Round Robin causes starvation. Is this correct?",
+    "Which scheduling algorithms can cause starvation?"
+   ]
+  },
+  {
+   "id": "m-rr-starve-2",
+   "cat": "M",
+   "group": "m-rr-starve",
+   "q": "Explain how round robin starves long processes.",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "N",
+   "secs": 0.0,
+   "answer": "No. Every process in the ready queue gets the CPU within (n − 1) × q time units, so no process waits forever. Round Robin is starvation-free; its drawback is overhead from context switches, not starvation.",
+   "hits": [
+    "Does Round Robin cause starvation?",
+    "Does Round Robin prioritize short processes?",
+    "Compare SJF and Round Robin for short processes"
+   ]
+  },
+  {
+   "id": "m-sjf-nostarve",
+   "cat": "M",
+   "group": null,
+   "q": "Why is SJF free from starvation?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "Y",
+   "secs": 0.0,
+   "answer": "Yes. SJF always selects the ready process with the shortest CPU burst. If shorter jobs keep arriving while a long job is waiting, there is always a shorter job to pick, so the long job can be passed over again and again and may never get the CPU. This is starvation (indefinite blocking). SRTF makes it more likely, because a running long job can also be preempted by each shorter arrival. Whether starvation actually happens depends on the workload: if short jobs stop arriving, the long job eventually runs. Aging is the usual remedy.",
+   "hits": [
+    "Can starvation occur in SJF?",
+    "Does SJF cause starvation?",
+    "Does Round Robin or SJF prevent starvation?"
+   ]
+  },
+  {
+   "id": "m-fcfs-pre",
+   "cat": "M",
+   "group": null,
+   "q": "Why is FCFS a preemptive algorithm?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "FCFS is non-preemptive. Once a process is given the CPU it runs until it terminates or voluntarily blocks for I/O. The scheduler never takes the CPU away from it, even if a shorter process arrives.",
+   "hits": [
+    "Is FCFS preemptive or non-preemptive?",
+    "Compare FCFS and preemptive Priority in detail",
+    "What is FCFS scheduling?"
+   ]
+  },
+  {
+   "id": "m-srtf-nonpre",
+   "cat": "M",
+   "group": null,
+   "q": "Since SRTF is non-preemptive, how does it handle a new shorter job?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Shortest Remaining Time First is the preemptive version of SJF. Whenever a new process arrives, its burst is compared with the remaining time of the running process; if the new burst is strictly shorter, the running process is preempted and the new one runs. The preempted process returns to the ready queue with its remaining time. SRTF gives an even lower average waiting time than non-preemptive SJF.",
+   "hits": [
+    "What is SRTF scheduling?",
+    "Is SJF preemptive or non-preemptive?",
+    "Shortest Job First (SJF) and Shortest Remaining Time First (SRTF)"
+   ]
+  },
+  {
+   "id": "m-rr-short",
+   "cat": "M",
+   "group": null,
+   "q": "Round Robin always runs the shortest process first, right?",
+   "ok": false,
+   "reason": "wrong or missing verdict (starts: 'SJF deliberately favours short processes: it picks the shortest burst ')",
+   "kind": "concept",
+   "blame": "generation",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "SJF deliberately favours short processes: it picks the shortest burst first, so short processes run almost immediately and the average waiting time is the minimum possible, but long jobs can starve. Round Robin does not prioritise short processes: it gives every process one quantum in cyclic order. A short process that fits in one quantum finishes in its first turn, but it may have to wait a turn for each process ahead of it. SJF wins on average waiting time; Round Robin wins on fairness and response time, and under standard assumptions no process starves.",
+   "hits": [
+    "Compare SJF and Round Robin for short processes",
+    "Does Round Robin prioritize short processes?",
+    "A student says a larger Round Robin quantum always gives better performance. Is this true?"
+   ]
+  },
+  {
+   "id": "m-tat",
+   "cat": "M",
+   "group": null,
+   "q": "Waiting time is the same as response time in every algorithm, correct?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "Only for non-preemptive algorithms. In FCFS, non-preemptive SJF and non-preemptive priority, a process runs to completion once started, so the time until it first runs is all the waiting it ever does. In Round Robin or SRTF a process can be preempted and wait again later, so its total waiting time can be much larger than its response time.",
+   "hits": [
+    "A student says response time and waiting time are always equal. Is this correct?",
+    "What is the difference between waiting time and response time?",
+    "Define waiting time, turnaround time and response time"
+   ]
+  },
+  {
+   "id": "m-prio",
+   "cat": "M",
+   "group": null,
+   "q": "In priority scheduling a higher priority number always means the process runs first, correct?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "It depends on the convention, and in our course it is the other way round. Following the prescribed textbook, a lower number means a higher priority, so priority 1 runs before priority 3. Always check the convention stated in the question; if none is given, use the textbook's. Getting this backwards reverses the whole Gantt chart.",
+   "hits": [
+    "A student says in priority scheduling a higher number means higher priority. Is this correct?",
+    "What is Priority scheduling?",
+    "A student says response time and waiting time are always equal. Is this correct?"
+   ]
+  },
+  {
+   "id": "m-bigq",
+   "cat": "M",
+   "group": null,
+   "q": "A smaller time quantum always improves Round Robin performance. Is that right?",
+   "ok": true,
+   "reason": "",
+   "kind": "concept",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "N",
+   "secs": 0.0,
+   "answer": "Not always. A larger quantum reduces context-switch overhead, but once the quantum is larger than every burst, Round Robin becomes FCFS and inherits the convoy effect and poor response time. A very small quantum, on the other hand, wastes time on switching. The best quantum sits in between: large compared with the context-switch time, with about 80 percent of bursts shorter than it.",
+   "hits": [
+    "A student says a larger Round Robin quantum always gives better performance. Is this true?",
+    "What is the time quantum in Round Robin?",
+    "What happens in Round Robin if the time quantum is very large?"
+   ]
+  },
+  {
+   "id": "s-1",
+   "cat": "S",
+   "group": null,
+   "q": "What is the capital of France?",
+   "ok": true,
+   "reason": "",
+   "kind": "scope",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "That question is outside my scope: I only answer questions about CPU scheduling from the course material, and I couldn't find anything relevant to it in my knowledge base. Try asking about FCFS, SJF/SRTF, Priority, Round Robin, or paste a scheduling problem to solve.",
+   "hits": []
+  },
+  {
+   "id": "s-2",
+   "cat": "S",
+   "group": null,
+   "q": "How do I make pasta?",
+   "ok": true,
+   "reason": "",
+   "kind": "scope",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "That question is outside my scope: I only answer questions about CPU scheduling from the course material, and I couldn't find anything relevant to it in my knowledge base. Try asking about FCFS, SJF/SRTF, Priority, Round Robin, or paste a scheduling problem to solve.",
+   "hits": []
+  },
+  {
+   "id": "s-3",
+   "cat": "S",
+   "group": null,
+   "q": "Write a poem about the sea.",
+   "ok": true,
+   "reason": "",
+   "kind": "scope",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "That question is outside my scope: I only answer questions about CPU scheduling from the course material, and I couldn't find anything relevant to it in my knowledge base. Try asking about FCFS, SJF/SRTF, Priority, Round Robin, or paste a scheduling problem to solve.",
+   "hits": []
+  },
+  {
+   "id": "s-4",
+   "cat": "S",
+   "group": null,
+   "q": "Who won the cricket world cup?",
+   "ok": true,
+   "reason": "",
+   "kind": "scope",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "That question is outside my scope: I only answer questions about CPU scheduling from the course material, and I couldn't find anything relevant to it in my knowledge base. Try asking about FCFS, SJF/SRTF, Priority, Round Robin, or paste a scheduling problem to solve.",
+   "hits": []
+  },
+  {
+   "id": "s-5",
+   "cat": "S",
+   "group": null,
+   "q": "What is paging in virtual memory?",
+   "ok": true,
+   "reason": "",
+   "kind": "scope",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "That question is outside my scope: I only answer questions about CPU scheduling from the course material, and I couldn't find anything relevant to it in my knowledge base. Try asking about FCFS, SJF/SRTF, Priority, Round Robin, or paste a scheduling problem to solve.",
+   "hits": []
+  },
+  {
+   "id": "s-6",
+   "cat": "S",
+   "group": null,
+   "q": "Explain how deadlock detection works.",
+   "ok": true,
+   "reason": "",
+   "kind": "scope",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "That question is outside my scope: I only answer questions about CPU scheduling from the course material, and I couldn't find anything relevant to it in my knowledge base. Try asking about FCFS, SJF/SRTF, Priority, Round Robin, or paste a scheduling problem to solve.",
+   "hits": []
+  },
+  {
+   "id": "s-7",
+   "cat": "S",
+   "group": null,
+   "q": "What is the best programming language?",
+   "ok": true,
+   "reason": "",
+   "kind": "scope",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "That question is outside my scope: I only answer questions about CPU scheduling from the course material, and I couldn't find anything relevant to it in my knowledge base. Try asking about FCFS, SJF/SRTF, Priority, Round Robin, or paste a scheduling problem to solve.",
+   "hits": []
+  },
+  {
+   "id": "s-8",
+   "cat": "S",
+   "group": null,
+   "q": "How do I install Python on Windows?",
+   "ok": true,
+   "reason": "",
+   "kind": "scope",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "That question is outside my scope: I only answer questions about CPU scheduling from the course material, and I couldn't find anything relevant to it in my knowledge base. Try asking about FCFS, SJF/SRTF, Priority, Round Robin, or paste a scheduling problem to solve.",
+   "hits": []
+  },
+  {
+   "id": "s-9",
+   "cat": "S",
+   "group": null,
+   "q": "What is a B-tree?",
+   "ok": true,
+   "reason": "",
+   "kind": "scope",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "That question is outside my scope: I only answer questions about CPU scheduling from the course material, and I couldn't find anything relevant to it in my knowledge base. Try asking about FCFS, SJF/SRTF, Priority, Round Robin, or paste a scheduling problem to solve.",
+   "hits": []
+  },
+  {
+   "id": "s-10",
+   "cat": "S",
+   "group": null,
+   "q": "Tell me a joke.",
+   "ok": true,
+   "reason": "",
+   "kind": "scope",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "That question is outside my scope: I only answer questions about CPU scheduling from the course material, and I couldn't find anything relevant to it in my knowledge base. Try asking about FCFS, SJF/SRTF, Priority, Round Robin, or paste a scheduling problem to solve.",
+   "hits": []
+  },
+  {
+   "id": "n-fcfs-basic",
+   "cat": "N",
+   "group": null,
+   "q": "Using FCFS, consider these processes:\nProcess Arrival Burst\nP1 0 5\nP2 1 3\nP3 2 8\nP4 3 6\nCalculate the average waiting time and average turnaround time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 5.75**\n\n**Average turnaround time = 11.25**\n\n**First Come First Served**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 4 + 6 + 13) / 4 = **5.75**\n- Average turnaround time = (5 + 7 + 14 + 19) / 4 = **11.25**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does FCFS work step by step?",
+    "What is FCFS scheduling?",
+    "Explain FCFS scheduling with an analogy"
+   ]
+  },
+  {
+   "id": "n-sjf-basic",
+   "cat": "N",
+   "group": null,
+   "q": "Using non-preemptive SJF, consider these processes:\nProcess Arrival Burst\nP1 0 7\nP2 2 4\nP3 4 1\nP4 5 4\nCalculate the average waiting time and average turnaround time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 4.00**\n\n**Average turnaround time = 8.00**\n\n**Shortest Job First (non-preemptive)**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 6 + 3 + 7) / 4 = **4.00**\n- Average turnaround time = (7 + 10 + 4 + 11) / 4 = **8.00**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "Is SJF preemptive or non-preemptive?",
+    "Compare SJF and non-preemptive Priority in detail",
+    "Summarise SJF in a few lines."
+   ]
+  },
+  {
+   "id": "n-srtf-basic",
+   "cat": "N",
+   "group": null,
+   "q": "Using SRTF, consider these processes:\nProcess Arrival Burst\nP1 0 7\nP2 2 4\nP3 4 1\nP4 5 4\nCalculate the average waiting time and average turnaround time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 3.00**\n\n**Average turnaround time = 7.00**\n\n**Shortest Remaining Time First (preemptive SJF)**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (9 + 1 + 0 + 2) / 4 = **3.00**\n- Average turnaround time = (16 + 5 + 1 + 6) / 4 = **7.00**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does non-preemptive SJF work step by step?",
+    "What is SRTF scheduling?",
+    "Explain Shortest Remaining Time First scheduling"
+   ]
+  },
+  {
+   "id": "n-priority-basic",
+   "cat": "N",
+   "group": null,
+   "q": "Using non-preemptive priority scheduling, consider these processes:\nProcess Arrival Burst Priority\nP1 0 8 3\nP2 1 4 1\nP3 2 9 4\nP4 3 5 2\nCalculate the average waiting time and average turnaround time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 7.75**\n\n**Average turnaround time = 14.25**\n\n**Priority (non-preemptive)**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 7 + 15 + 9) / 4 = **7.75**\n- Average turnaround time = (8 + 11 + 24 + 14) / 4 = **14.25**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does non-preemptive Priority scheduling work step by step?",
+    "What is the context-switch overhead of non-preemptive Priority?",
+    "What is the response time behaviour of non-preemptive Priority?"
+   ]
+  },
+  {
+   "id": "n-priority_p-basic",
+   "cat": "N",
+   "group": null,
+   "q": "Using preemptive priority scheduling, consider these processes:\nProcess Arrival Burst Priority\nP1 0 8 3\nP2 1 4 1\nP3 2 9 4\nP4 3 5 2\nCalculate the average waiting time and average turnaround time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 6.50**\n\n**Average turnaround time = 13.00**\n\n**Priority (preemptive)**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (9 + 0 + 15 + 2) / 4 = **6.50**\n- Average turnaround time = (17 + 4 + 24 + 7) / 4 = **13.00**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does preemptive Priority scheduling work step by step?",
+    "Compare non-preemptive Priority and preemptive Priority in detail",
+    "Compare SJF and preemptive Priority in detail"
+   ]
+  },
+  {
+   "id": "n-rr-basic",
+   "cat": "N",
+   "group": null,
+   "q": "Using Round Robin with time quantum 4, consider these processes:\nProcess Arrival Burst\nP1 0 24\nP2 0 3\nP3 0 3\nCalculate the average waiting time and average turnaround time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 5.67**\n\n**Average turnaround time = 15.67**\n\n**Round Robin with time quantum 4**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (6 + 4 + 7) / 3 = **5.67**\n- Average turnaround time = (30 + 7 + 10) / 3 = **15.67**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does Round Robin work step by step?",
+    "What is Round Robin scheduling?",
+    "Round Robin (RR)"
+   ]
+  },
+  {
+   "id": "n-fcfs-gantt",
+   "cat": "N",
+   "group": null,
+   "q": "Using FCFS, consider these processes:\nProcess Arrival Burst\nP1 0 24\nP2 0 3\nP3 0 3\nDraw the Gantt chart.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Gantt chart**: P1 (0–24) → P2 (24–27) → P3 (27–30)\n\n**First Come First Served**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 24 + 27) / 3 = **17.00**\n- Average turnaround time = (24 + 27 + 30) / 3 = **27.00**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does FCFS work step by step?",
+    "What is FCFS scheduling?",
+    "Explain FCFS scheduling with an analogy"
+   ]
+  },
+  {
+   "id": "n-fcfs-idle",
+   "cat": "N",
+   "group": null,
+   "q": "Using FCFS, consider these processes:\nProcess Arrival Burst\nP1 0 3\nP2 6 4\nP3 7 2\nFind the completion, turnaround and waiting time of each process.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Waiting time**: P1 = 0, P2 = 0, P3 = 3; average = 1.00\n\n**Turnaround time**: P1 = 3, P2 = 4, P3 = 5; average = 4.00\n\n**Completion time**: P1 = 3, P2 = 10, P3 = 12\n\n**First Come First Served**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 0 + 3) / 3 = **1.00**\n- Average turnaround time = (3 + 4 + 5) / 3 = **4.00**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does FCFS work step by step?",
+    "What is FCFS scheduling?",
+    "Explain FCFS scheduling with an analogy"
+   ]
+  },
+  {
+   "id": "n-sjf-idle",
+   "cat": "N",
+   "group": null,
+   "q": "Using non-preemptive SJF, consider these processes:\nProcess Arrival Burst\nP1 2 6\nP2 5 2\nP3 5 4\nP4 12 3\nCompute the average waiting time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 2.50**\n\n**Shortest Job First (non-preemptive)**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 3 + 5 + 2) / 4 = **2.50**\n- Average turnaround time = (6 + 5 + 9 + 5) / 4 = **6.25**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "Is SJF preemptive or non-preemptive?",
+    "Compare SJF and non-preemptive Priority in detail",
+    "Summarise SJF in a few lines."
+   ]
+  },
+  {
+   "id": "n-srtf-idle",
+   "cat": "N",
+   "group": null,
+   "q": "Using SRTF, consider these processes:\nProcess Arrival Burst\nP1 2 6\nP2 5 2\nP3 5 4\nP4 12 3\nCompute the average turnaround time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average turnaround time = 6.00**\n\n**Shortest Remaining Time First (preemptive SJF)**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (2 + 0 + 5 + 2) / 4 = **2.25**\n- Average turnaround time = (8 + 2 + 9 + 5) / 4 = **6.00**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does non-preemptive SJF work step by step?",
+    "What is SRTF scheduling?",
+    "Explain Shortest Remaining Time First scheduling"
+   ]
+  },
+  {
+   "id": "n-prio-ties",
+   "cat": "N",
+   "group": null,
+   "q": "Using non-preemptive priority scheduling, consider these processes:\nProcess Arrival Burst Priority\nP1 0 4 2\nP2 0 3 2\nP3 0 5 1\nP4 2 2 1\nFind the average waiting time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 5.25**\n\n**Priority (non-preemptive)**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (7 + 11 + 0 + 3) / 4 = **5.25**\n- Average turnaround time = (11 + 14 + 5 + 5) / 4 = **8.75**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does non-preemptive Priority scheduling work step by step?",
+    "What is the context-switch overhead of non-preemptive Priority?",
+    "What is the response time behaviour of non-preemptive Priority?"
+   ]
+  },
+  {
+   "id": "n-priop-ties",
+   "cat": "N",
+   "group": null,
+   "q": "Using preemptive priority scheduling, consider these processes:\nProcess Arrival Burst Priority\nP1 0 4 2\nP2 0 3 2\nP3 0 5 1\nP4 2 2 1\nFind the average waiting time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 5.25**\n\n**Priority (preemptive)**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (7 + 11 + 0 + 3) / 4 = **5.25**\n- Average turnaround time = (11 + 14 + 5 + 5) / 4 = **8.75**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does preemptive Priority scheduling work step by step?",
+    "Compare non-preemptive Priority and preemptive Priority in detail",
+    "Compare SJF and preemptive Priority in detail"
+   ]
+  },
+  {
+   "id": "n-prio-textbook",
+   "cat": "N",
+   "group": null,
+   "q": "Using non-preemptive priority scheduling, consider these processes:\nProcess Arrival Burst Priority\nP1 0 10 3\nP2 0 1 1\nP3 0 2 4\nP4 0 1 5\nP5 0 5 2\nWhat is the average waiting time?",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 8.20**\n\n**Priority (non-preemptive)**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (6 + 0 + 16 + 18 + 1) / 5 = **8.20**\n- Average turnaround time = (16 + 1 + 18 + 19 + 6) / 5 = **12.00**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does non-preemptive Priority scheduling work step by step?",
+    "What is the context-switch overhead of non-preemptive Priority?",
+    "What is the response time behaviour of non-preemptive Priority?"
+   ]
+  },
+  {
+   "id": "n-rr-q2",
+   "cat": "N",
+   "group": null,
+   "q": "Using Round Robin with time quantum 2, consider these processes:\nProcess Arrival Burst\nP1 0 5\nP2 1 3\nP3 2 8\nP4 3 6\nWhat is the average waiting time?",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 9.75**\n\n**Round Robin with time quantum 2**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (9 + 7 + 12 + 11) / 4 = **9.75**\n- Average turnaround time = (14 + 10 + 20 + 17) / 4 = **15.25**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does Round Robin work step by step?",
+    "What is Round Robin scheduling?",
+    "Round Robin (RR)"
+   ]
+  },
+  {
+   "id": "n-rr-q3-arr",
+   "cat": "N",
+   "group": null,
+   "q": "Using Round Robin with time quantum 3, consider these processes:\nProcess Arrival Burst\nP1 0 6\nP2 3 2\nP3 3 4\nFind the average waiting time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 3.33**\n\n**Round Robin with time quantum 3**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (5 + 0 + 5) / 3 = **3.33**\n- Average turnaround time = (11 + 2 + 9) / 3 = **7.33**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does Round Robin work step by step?",
+    "What is Round Robin scheduling?",
+    "Round Robin (RR)"
+   ]
+  },
+  {
+   "id": "n-rr-idle",
+   "cat": "N",
+   "group": null,
+   "q": "Using Round Robin with time quantum 3, consider these processes:\nProcess Arrival Burst\nP1 2 6\nP2 5 2\nP3 5 4\nP4 12 3\nFind the average turnaround time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average turnaround time = 6.75**\n\n**Round Robin with time quantum 3**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (5 + 0 + 5 + 2) / 4 = **3.00**\n- Average turnaround time = (11 + 2 + 9 + 5) / 4 = **6.75**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does Round Robin work step by step?",
+    "What is Round Robin scheduling?",
+    "Round Robin (RR)"
+   ]
+  },
+  {
+   "id": "n-rr-big-q",
+   "cat": "N",
+   "group": null,
+   "q": "Using Round Robin with time quantum 30, consider these processes:\nProcess Arrival Burst\nP1 0 24\nP2 0 3\nP3 0 3\nFind the average waiting time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 17.00**\n\n**Round Robin with time quantum 30**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 24 + 27) / 3 = **17.00**\n- Average turnaround time = (24 + 27 + 30) / 3 = **27.00**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does Round Robin work step by step?",
+    "What is Round Robin scheduling?",
+    "Round Robin (RR)"
+   ]
+  },
+  {
+   "id": "n-rr-q1",
+   "cat": "N",
+   "group": null,
+   "q": "Using Round Robin with time quantum 1, consider these processes:\nProcess Arrival Burst\nP1 0 7\nP2 2 4\nP3 4 1\nP4 5 4\nFind the average waiting time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 5.50**\n\n**Round Robin with time quantum 1**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (8 + 6 + 1 + 7) / 4 = **5.50**\n- Average turnaround time = (15 + 10 + 2 + 11) / 4 = **9.50**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does Round Robin work step by step?",
+    "What is Round Robin scheduling?",
+    "Round Robin (RR)"
+   ]
+  },
+  {
+   "id": "n-resp-rr",
+   "cat": "N",
+   "group": null,
+   "q": "Using Round Robin with time quantum 4, consider these processes:\nProcess Arrival Burst\nP1 0 24\nP2 0 3\nP3 0 3\nWhat is the average response time?",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average response time = 3.67**\n\n**Round Robin with time quantum 4**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (6 + 4 + 7) / 3 = **5.67**\n- Average turnaround time = (30 + 7 + 10) / 3 = **15.67**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does Round Robin work step by step?",
+    "What is Round Robin scheduling?",
+    "Round Robin (RR)"
+   ]
+  },
+  {
+   "id": "n-resp-srtf",
+   "cat": "N",
+   "group": null,
+   "q": "Using SRTF, consider these processes:\nProcess Arrival Burst\nP1 0 7\nP2 2 4\nP3 4 1\nP4 5 4\nWhat is the average response time?",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average response time = 0.50**\n\n**Shortest Remaining Time First (preemptive SJF)**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (9 + 1 + 0 + 2) / 4 = **3.00**\n- Average turnaround time = (16 + 5 + 1 + 6) / 4 = **7.00**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does non-preemptive SJF work step by step?",
+    "What is SRTF scheduling?",
+    "Explain Shortest Remaining Time First scheduling"
+   ]
+  },
+  {
+   "id": "n-resp-fcfs",
+   "cat": "N",
+   "group": null,
+   "q": "Using FCFS, consider these processes:\nProcess Arrival Burst\nP1 0 5\nP2 1 3\nP3 2 8\nP4 3 6\nCalculate the response time of P3.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Response time**: P3 = 6\n\n**First Come First Served**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 4 + 6 + 13) / 4 = **5.75**\n- Average turnaround time = (5 + 7 + 14 + 19) / 4 = **11.25**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does FCFS work step by step?",
+    "What is FCFS scheduling?",
+    "Explain FCFS scheduling with an analogy"
+   ]
+  },
+  {
+   "id": "n-wait-p2",
+   "cat": "N",
+   "group": null,
+   "q": "Using non-preemptive SJF, consider these processes:\nProcess Arrival Burst\nP1 0 7\nP2 2 4\nP3 4 1\nP4 5 4\nWhat is the waiting time of P2?",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Waiting time**: P2 = 6\n\n**Shortest Job First (non-preemptive)**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 6 + 3 + 7) / 4 = **4.00**\n- Average turnaround time = (7 + 10 + 4 + 11) / 4 = **8.00**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "Is SJF preemptive or non-preemptive?",
+    "Compare SJF and non-preemptive Priority in detail",
+    "Summarise SJF in a few lines."
+   ]
+  },
+  {
+   "id": "n-util",
+   "cat": "N",
+   "group": null,
+   "q": "Using FCFS, consider these processes:\nProcess Arrival Burst\nP1 0 3\nP2 6 4\nP3 7 2\nWhat is the CPU utilization?",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**CPU utilisation** = 9 / 12 = 75.0%\n\n**First Come First Served**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 0 + 3) / 3 = **1.00**\n- Average turnaround time = (3 + 4 + 5) / 3 = **4.00**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does FCFS work step by step?",
+    "What is FCFS scheduling?",
+    "Explain FCFS scheduling with an analogy"
+   ]
+  },
+  {
+   "id": "n-thru",
+   "cat": "N",
+   "group": null,
+   "q": "Using FCFS, consider these processes:\nProcess Arrival Burst\nP1 0 3\nP2 6 4\nP3 7 2\nWhat is the throughput?",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Throughput** = 3 processes / 12 time units = 0.250\n\n**First Come First Served**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 0 + 3) / 3 = **1.00**\n- Average turnaround time = (3 + 4 + 5) / 3 = **4.00**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does FCFS work step by step?",
+    "What is FCFS scheduling?",
+    "Explain FCFS scheduling with an analogy"
+   ]
+  },
+  {
+   "id": "n-list",
+   "cat": "N",
+   "group": null,
+   "q": "Using non-preemptive SJF, consider these processes:\nP1 0 7; P2 2 4; P3 4 1; P4 5 4\nFind the average waiting time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 4.00**\n\n**Shortest Job First (non-preemptive)**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 6 + 3 + 7) / 4 = **4.00**\n- Average turnaround time = (7 + 10 + 4 + 11) / 4 = **8.00**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "Is SJF preemptive or non-preemptive?",
+    "Compare SJF and non-preemptive Priority in detail",
+    "Summarise SJF in a few lines."
+   ]
+  },
+  {
+   "id": "n-parallel",
+   "cat": "N",
+   "group": null,
+   "q": "Using FCFS, consider these processes:\nburst times 5, 3, 8, 6, arrival times 0, 1, 2, 3\nFind the average waiting time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 5.75**\n\n**First Come First Served**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 4 + 6 + 13) / 4 = **5.75**\n- Average turnaround time = (5 + 7 + 14 + 19) / 4 = **11.25**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does FCFS work step by step?",
+    "What is FCFS scheduling?",
+    "Explain FCFS scheduling with an analogy"
+   ]
+  },
+  {
+   "id": "n-label",
+   "cat": "N",
+   "group": null,
+   "q": "Using non-preemptive priority scheduling, consider these processes:\nP1: arrival 0, burst 8, priority 3\nP2: arrival 1, burst 4, priority 1\nP3: arrival 2, burst 9, priority 4\nP4: arrival 3, burst 5, priority 2\nFind the average waiting time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 7.75**\n\n**Priority (non-preemptive)**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 7 + 15 + 9) / 4 = **7.75**\n- Average turnaround time = (8 + 11 + 24 + 14) / 4 = **14.25**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does non-preemptive Priority scheduling work step by step?",
+    "What is the context-switch overhead of non-preemptive Priority?",
+    "What is the response time behaviour of non-preemptive Priority?"
+   ]
+  },
+  {
+   "id": "n-bursts-only",
+   "cat": "N",
+   "group": null,
+   "q": "Using FCFS, consider these processes:\nP1=9, P2=2, P3=1\nCalculate waiting time for each process.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Waiting time**: P1 = 0, P2 = 9, P3 = 11; average = 6.67\n\n**First Come First Served**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 9 + 11) / 3 = **6.67**\n- Average turnaround time = (9 + 11 + 12) / 3 = **10.67**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does FCFS work step by step?",
+    "What is FCFS scheduling?",
+    "Explain FCFS scheduling with an analogy"
+   ]
+  },
+  {
+   "id": "n-compare3",
+   "cat": "N",
+   "group": null,
+   "q": "Process Arrival Burst\nP1 0 24\nP2 0 3\nP3 0 3\nCompare FCFS, SJF and Round Robin on average waiting time.",
+   "ok": false,
+   "reason": "average waiting time of ['fcfs', 'sjf', 'rr'] not shown",
+   "kind": "numeric",
+   "blame": "numerical",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 6.33**\n\n**Round Robin with time quantum 2**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (6 + 6 + 7) / 3 = **6.33**\n- Average turnaround time = (30 + 9 + 10) / 3 = **16.33**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does Round Robin work step by step?",
+    "What is Round Robin scheduling?",
+    "Round Robin (RR)"
+   ]
+  },
+  {
+   "id": "n-compare2",
+   "cat": "N",
+   "group": null,
+   "q": "Process Arrival Burst\nP1 0 7\nP2 2 4\nP3 4 1\nP4 5 4\nWhich is better for this workload, FCFS or SRTF, on average waiting time?",
+   "ok": false,
+   "reason": "average waiting time of ['fcfs'] not shown",
+   "kind": "numeric",
+   "blame": "numerical",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 3.00**\n\n**Shortest Remaining Time First (preemptive SJF)**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (9 + 1 + 0 + 2) / 4 = **3.00**\n- Average turnaround time = (16 + 5 + 1 + 6) / 4 = **7.00**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does non-preemptive SJF work step by step?",
+    "What is SRTF scheduling?",
+    "Explain Shortest Remaining Time First scheduling"
+   ]
+  },
+  {
+   "id": "n-miss-quantum",
+   "cat": "N",
+   "group": null,
+   "q": "Round Robin: P1 0 5, P2 1 3, P3 2 8. Find the average waiting time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 6.00**\n\n**Round Robin with time quantum 2**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (7 + 5 + 6) / 3 = **6.00**\n- Average turnaround time = (12 + 8 + 14) / 3 = **11.33**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does Round Robin work step by step?",
+    "What is Round Robin scheduling?",
+    "Round Robin (RR)"
+   ]
+  },
+  {
+   "id": "n-miss-noprio",
+   "cat": "N",
+   "group": null,
+   "q": "Priority scheduling: P1 0 5, P2 1 3, P3 2 8. Find the average waiting time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 3.33**\n\n**Priority (non-preemptive)**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 4 + 6) / 3 = **3.33**\n- Average turnaround time = (5 + 7 + 14) / 3 = **8.67**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does non-preemptive Priority scheduling work step by step?",
+    "What is the context-switch overhead of non-preemptive Priority?",
+    "What is the response time behaviour of non-preemptive Priority?"
+   ]
+  },
+  {
+   "id": "n-miss-arrival",
+   "cat": "N",
+   "group": null,
+   "q": "FCFS: P1=5, P2=3, P3=8. Find the average waiting time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 4.33**\n\n**First Come First Served**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (0 + 5 + 8) / 3 = **4.33**\n- Average turnaround time = (5 + 8 + 16) / 3 = **9.67**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does FCFS work step by step?",
+    "What is FCFS scheduling?",
+    "Explain FCFS scheduling with an analogy"
+   ]
+  },
+  {
+   "id": "n-miss-all",
+   "cat": "N",
+   "group": null,
+   "q": "Solve this SJF problem and calculate the average waiting time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "I can solve that with the scheduling simulator, but I need the process data. Send the SJF problem with each process's arrival and burst time, for example `P1 0 5, P2 1 3, P3 2 8` (pid arrival burst). If you leave out arrival times I assume every process arrives at t=0. Or ask for *a practice problem* and I will generate one and solve it.",
+   "hits": []
+  },
+  {
+   "id": "n-bad-zero",
+   "cat": "N",
+   "group": null,
+   "q": "FCFS: P1 0 0, P2 1 3, P3 2 8. Find the average waiting time.",
+   "ok": true,
+   "reason": "",
+   "kind": "numeric",
+   "blame": null,
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "The average waiting time under FCFS is often long and very sensitive to the order of arrival.",
+   "hits": [
+    "What is the effect of FCFS on average waiting time?",
+    "A student says FCFS is always the worst algorithm for average waiting time. Is that right?",
+    "What is the formula for average waiting time and average turnaround time?"
+   ]
+  },
+  {
+   "id": "n-bad-q0",
+   "cat": "N",
+   "group": null,
+   "q": "Round Robin with quantum 0: P1 0 5, P2 1 3. Find the average waiting time.",
+   "ok": false,
+   "reason": "did not ask for / state the missing information",
+   "kind": "numeric",
+   "blame": "numerical",
+   "ev_ok": true,
+   "verdict": "-",
+   "secs": 0.0,
+   "answer": "**Average waiting time = 3.00**\n\n**Round Robin with time quantum 2**: solved by the scheduling simulator (computed, not generated).\n\n- Average waiting time = (3 + 3) / 2 = **3.00**\n- Average turnaround time = (8 + 6) / 2 = **7.00**\n\nWaiting = turnaround − burst, turnaround = completion − arrival. Open *Walk me through it, step by step* to replay every choice the scheduler makes.",
+   "hits": [
+    "How does Round Robin work step by step?",
+    "What is Round Robin scheduling?",
+    "Round Robin (RR)"
+   ]
+  }
+ ]
+}

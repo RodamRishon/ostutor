@@ -16,6 +16,38 @@ There are three types of schedulers: the long-term (job) scheduler, which admits
 
 The main CPU scheduling algorithms are: First Come First Served (FCFS), which runs processes in the order they arrive; Shortest Job First (SJF), which runs the process with the shortest next CPU burst; Shortest Remaining Time First (SRTF), the preemptive version of SJF; Priority scheduling, which runs the highest-priority process and comes in non-preemptive and preemptive versions; and Round Robin (RR), which gives each process a fixed time quantum in turn. The course also covers Highest Response Ratio Next (HRRN), multilevel queue and multilevel feedback queue (MLFQ) scheduling, lottery scheduling, and real-time algorithms such as EDF and Rate Monotonic. By behaviour they split into non-preemptive algorithms (FCFS, SJF, non-preemptive Priority, HRRN) and preemptive algorithms (SRTF, Round Robin, preemptive Priority, MLFQ).
 
+### Explain CPU scheduling in simple words with a real-life analogy.
+
+Imagine one cashier (the CPU) and a line of customers (the processes). The cashier can serve only one customer at a time, so someone must decide who is served next: that decision-maker is the scheduler. If customers are served in the order they arrived, that is FCFS. If the customer with the fewest items goes first, that is SJF. If the cashier serves each customer for a fixed couple of minutes and then moves on to the next one in the line, that is Round Robin. If VIP customers always go first, that is Priority scheduling. The aim is to keep the cashier busy and to keep everyone's waiting as short and as fair as possible.
+
+### What is a scheduler?
+
+A scheduler is the part of the operating system that decides which process or job gets a resource next. In CPU scheduling, the short-term (CPU) scheduler chooses which process in the ready queue runs on the CPU next, and it runs very often, so it must be fast. The long-term (job) scheduler decides which jobs are admitted into memory, and the medium-term scheduler swaps processes out of and back into memory. The dispatcher then gives the CPU to the process the scheduler chose.
+
+### What is burst time?
+
+Burst time (also called CPU burst or service time) is the amount of CPU time a process needs before it finishes or blocks for I/O. It is the length of one CPU burst, and in scheduling numericals it is the number of time units the process must spend on the CPU. Waiting time is turnaround time minus burst time.
+
+### What is arrival time?
+
+Arrival time is the time at which a process enters the ready queue and becomes available to be scheduled. A process cannot run before its arrival time, so it matters most for FCFS and for preemptive algorithms such as SRTF, where a new arrival can change the decision. Turnaround time is measured from the arrival time: turnaround time is completion time minus arrival time.
+
+### Why is CPU scheduling needed?
+
+CPU scheduling is needed because the CPU is much faster than I/O devices and there are usually more ready processes than CPUs. Without scheduling, the CPU would sit idle whenever a process waits for I/O, and nothing would decide which of several ready processes runs next. A scheduler keeps the CPU busy and chooses the order so that the system meets its goals: high CPU utilisation and throughput, low waiting, turnaround and response time, and fairness between processes.
+
+### Give an overview of CPU scheduling.
+
+CPU scheduling decides which ready process runs on the CPU next, so that the CPU stays busy and processes get fair, quick service. A scheduler is judged by criteria such as CPU utilisation and throughput (to maximise) and waiting time, turnaround time and response time (to minimise). The main algorithms are FCFS (serve in arrival order), SJF and SRTF (shortest burst first, optimal for average waiting time), Priority scheduling (highest priority first, with aging to prevent starvation) and Round Robin (a fixed time quantum in turn, best for response time). Algorithms are either non-preemptive, where a process keeps the CPU until it finishes or blocks, or preemptive, where it can be interrupted. Multilevel queue and multilevel feedback queue schedulers combine these ideas, and real operating systems such as Linux and Windows use such combinations.
+
+### What is the purpose of CPU scheduling?
+
+The purpose of CPU scheduling is to decide which ready process gets the CPU next, so that the CPU is never idle while work is waiting and the system meets its goals. A good scheduler maximises CPU utilisation and throughput and minimises waiting time, turnaround time and response time, while staying fair to every process. It is what makes multiprogramming useful: when one process waits for I/O, the CPU is given to another.
+
+### What is completion time?
+
+Completion time is the clock time at which a process finishes its execution, read from the end of that process's last box in the Gantt chart. It is used to get turnaround time (completion time − arrival time) and then waiting time (turnaround time − burst time).
+
 ### What is the difference between the long-term, medium-term and short-term scheduler?
 
 The long-term (job) scheduler decides which jobs are admitted into memory, so it controls the degree of multiprogramming. The short-term (CPU) scheduler decides which ready process runs on the CPU next and runs very frequently, so it must be fast. The medium-term scheduler swaps processes out of memory and back in to reduce the degree of multiprogramming. The algorithms FCFS, SJF, Priority and Round Robin are all short-term (CPU) scheduling algorithms.
@@ -100,7 +132,7 @@ FCFS is non-preemptive. Once a process is given the CPU it runs until it termina
 
 ### Does FCFS cause starvation?
 
-No. FCFS cannot cause starvation, because the queue is served strictly in arrival order, so every process eventually reaches the head of the queue and gets the CPU. A process may wait a long time behind a long job, but it does not wait forever.
+No, not in standard FCFS. The queue is served strictly in arrival order, so, assuming every process ahead of it eventually finishes or blocks, each process reaches the head of the queue and gets the CPU. A process may wait a long time behind a long job; that is the convoy effect (a long but finite delay), not starvation, which means indefinite postponement. Only an unrealistic case such as a process ahead that never terminates would block the queue for ever.
 
 ### How are ties broken in FCFS?
 
@@ -230,7 +262,7 @@ P1 arrives at 0 with burst 6; P2 arrives at 3 with burst 2; P3 arrives at 3 with
 
 ### What are the advantages of Round Robin?
 
-Round Robin is fair: every process gets the CPU in turn. It has no starvation, because every process reaches the head of the queue within a bounded time. It gives good response time, which suits interactive time-sharing systems. It is simple to implement with a circular queue and a timer.
+Round Robin is fair: every process gets the CPU in turn. Under standard assumptions it has no starvation, because every ready process reaches the head of the queue within a bounded time ((n − 1) × q). It gives good response time, which suits interactive time-sharing systems. It is simple to implement with a circular queue and a timer.
 
 ### What are the disadvantages of Round Robin?
 
@@ -339,6 +371,70 @@ Round Robin with a suitably small time quantum gives the best and most predictab
 ### Which scheduling algorithm is the fairest?
 
 Round Robin is the fairest in the sense that every process receives equal CPU time slices in turn and none starves. FCFS is fair in order of arrival but not in service quality. SJF and Priority scheduling can treat long or low-priority processes unfairly.
+
+### Which CPU scheduling algorithm is the best or most efficient, and why?
+
+No single algorithm is the best in every situation, because the scheduling criteria conflict, so the best choice depends on what the system must optimise. For the lowest average waiting time and turnaround time, SRTF (preemptive SJF) is optimal, and non-preemptive SJF is optimal among non-preemptive algorithms, because running the shortest job first lets the most processes finish early. But they need the next CPU burst length in advance, which in practice can only be predicted, and they can starve long jobs, so they are rarely used in their pure form. For the best response time and fairness, Round Robin is the better choice, because every process gets a turn within (n − 1) × q time units, at the cost of more context switches and a longer average turnaround time. FCFS is the simplest and has no starvation, but the convoy effect makes its average waiting time poor. Priority scheduling suits systems with important tasks but needs aging to avoid starvation. Real general-purpose systems therefore combine ideas, for example multilevel feedback queues, which approximate SJF without knowing burst lengths and still give interactive jobs a quick response.
+
+### Why is SJF considered the most efficient scheduling algorithm?
+
+SJF is called the most efficient for one specific reason: it gives the minimum average waiting time, and therefore the minimum average turnaround time, for a set of processes whose burst lengths are known. Running a short job first delays only a few processes by a little, while running a long job first delays many processes by a lot, so choosing the shortest job each time keeps the total waiting time as small as possible. It is not the most efficient on every measure: it can starve long jobs, it does not give the best response time, and the length of the next CPU burst is not really known, so real systems estimate it, for example by exponential averaging.
+
+### Which scheduling algorithm gives the least average turnaround time?
+
+Shortest Job First gives the least average turnaround time among non-preemptive algorithms, and SRTF gives the least when preemption is allowed and the burst lengths are known. Turnaround time is waiting time plus burst time, and the burst times are fixed, so the algorithm that minimises average waiting time also minimises average turnaround time.
+
+### Which scheduling algorithm gives the highest throughput?
+
+Shortest Job First and SRTF usually give the highest throughput, because by finishing the shortest jobs first they complete the largest number of processes in a given time. Round Robin with a very small time quantum lowers throughput, because much of the time goes on context switches, and FCFS can lower it when a long job sits at the front of the queue.
+
+### Which scheduling algorithm is the simplest to implement?
+
+First Come First Served is the simplest to implement: the ready queue is a plain FIFO queue, a new process joins the tail and the scheduler always takes the process at the head, with no burst lengths, priorities or time quantum to track. Its simplicity is its main advantage; its main drawback is the convoy effect.
+
+### Which scheduling algorithm is the worst or least efficient?
+
+No algorithm is the worst in every case, but FCFS usually gives the highest average waiting time when long processes arrive before short ones, because of the convoy effect. Round Robin gives a poor average turnaround time and wastes CPU time on context switches when the time quantum is very small, and it behaves like FCFS when the quantum is very large. Priority scheduling and SJF can starve some processes. Which one is worst depends on the workload and on the criterion being measured.
+
+### Which scheduling algorithms do real operating systems like Windows and Linux use?
+
+Real operating systems do not use one of the textbook algorithms in its pure form; they combine ideas. Windows uses a priority-based, preemptive scheduler with 32 priority levels: the highest-priority ready thread runs, threads of equal priority share the CPU in Round Robin fashion with a time quantum, and the priority of ordinary threads is adjusted dynamically (for example raised after waiting for I/O), which is similar to a multilevel feedback queue. Linux uses the Completely Fair Scheduler (CFS), which always runs the task with the smallest virtual runtime to give every task a fair share of the CPU; from Linux 6.6 its selection rule was replaced by EEVDF (Earliest Eligible Virtual Deadline First), which keeps the same fairness goal. Linux also has separate real-time policies, SCHED_FIFO and SCHED_RR.
+
+### Which scheduling algorithm is optimal?
+
+It depends on the criterion, and no algorithm is optimal for all of them. SRTF is optimal for average waiting time and average turnaround time when burst lengths and arrival times are known, and non-preemptive SJF is optimal among non-preemptive algorithms. Neither is optimal for fairness or response time, because they can starve long jobs. Round Robin is not optimal for waiting time or turnaround time, but it gives good response time.
+
+### Why is SJF not used in practice?
+
+SJF needs the length of each process's next CPU burst, and the operating system cannot know it in advance. It can only predict it from the recent past, for example by exponential averaging, and a prediction can be wrong. SJF also lets a stream of short jobs starve a long job, and it gives poor response time for interactive use. Real systems therefore use schedulers such as Round Robin, priority scheduling or multilevel feedback queues, which approximate the benefits of SJF without knowing burst lengths.
+
+### Which scheduling algorithm gives the highest CPU utilisation?
+
+No single algorithm gives the highest CPU utilisation, because utilisation depends mostly on keeping the ready queue non-empty and on how much time is lost to context switches, not on the order of selection. Every algorithm that never leaves the CPU idle while a process is ready keeps it equally busy. Algorithms with few context switches, such as FCFS and non-preemptive SJF, waste the least time on switching, while Round Robin with a very small time quantum lowers utilisation because of context-switch overhead.
+
+### Which scheduling algorithm is best for real-time systems?
+
+Real-time systems use priority-based schedulers that try to guarantee deadlines. Rate Monotonic scheduling gives a fixed priority to each periodic task, higher for a shorter period, and Earliest Deadline First (EDF) always runs the task with the nearest deadline and is optimal on a single processor when utilisation is at most 100 percent. Round Robin and FCFS give no deadline guarantee, so they are not suitable on their own.
+
+### Why is FCFS not suitable for time-sharing systems?
+
+FCFS is non-preemptive, so a process keeps the CPU until it finishes or blocks. A long job can therefore hold the CPU for a long time (the convoy effect) while interactive users wait, which gives poor response time. Time-sharing systems need every user to get the CPU regularly, which requires preemption with a time quantum, as in Round Robin or a multilevel feedback queue.
+
+### How do you choose the right scheduling algorithm?
+
+Choose the algorithm from the kind of system and the criterion that matters most. Batch systems care about throughput and turnaround time, so FCFS or SJF/SRTF suit them. Interactive time-sharing systems care about response time and fairness, so Round Robin or a multilevel feedback queue is better. Real-time systems need deadline guarantees, so they use priority-based schemes such as Rate Monotonic or EDF. Also consider whether burst lengths are known (needed for SJF and SRTF), whether starvation must be avoided (SJF and Priority need aging), how much context-switch overhead is acceptable (Round Robin with a small quantum has the most), and how simple the implementation must be (FCFS is the simplest).
+
+### What is the difference between a multilevel queue and a multilevel feedback queue?
+
+In a multilevel queue scheduler the ready queue is split into separate queues, such as foreground (interactive) and background (batch), and a process stays permanently in the queue it was assigned to; each queue can use its own algorithm. In a multilevel feedback queue a process can move between queues based on its behaviour: a process that uses its full time allotment moves down to a lower-priority queue, so CPU-bound jobs sink, while interactive jobs that give up the CPU early stay high, and a periodic boost moves waiting jobs back to the top. The multilevel feedback queue is therefore more flexible and prevents starvation, but it is more complex to configure.
+
+### What is the time complexity of SJF scheduling?
+
+Each SJF scheduling decision takes O(n) if the scheduler scans the ready queue for the shortest burst, or O(log n) if the ready queue is a min-heap (priority queue) keyed on burst time. Sorting n processes by burst time up front, as in a simple numerical, takes O(n log n).
+
+### What is the time complexity of scheduling algorithms?
+
+The cost is per scheduling decision. FCFS and Round Robin take O(1), because the scheduler only removes the process at the head of a FIFO queue. SJF, SRTF and Priority scheduling take O(n) if they scan the ready queue, or O(log n) with a heap keyed on burst time or priority. A multilevel feedback queue takes O(1) when it has a fixed number of queues. Linux's CFS keeps tasks in a red-black tree, so inserting or removing a task takes O(log n).
 
 ### Which scheduling algorithms can cause starvation?
 

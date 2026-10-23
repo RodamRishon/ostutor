@@ -19,21 +19,34 @@ import threading
 import urllib.request
 
 from build_index import tokenize
-from intent import detect_intent, direct_answer, examples_block, format_directive
+from intent import EXAM_INTENTS, detect_intent, direct_answer, examples_block, format_directive
+import concept_check
 import rich_answers
 from checker import check_answer
 from practice import verified_problem
 from retriever import QUESTION_WORDS, Retriever, canon_tokens, cite
 from router import route
-from scheduler import gantt_text, solve, table_text
+from scheduler import check_invariants, gantt_text, solve, table_text
 
 OLLAMA_URL = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 # First model found is used: the fine-tuned adapter first, then the base model.
 PREFERRED_MODELS = [m for m in [os.environ.get("OSTUTOR_MODEL"), "ostutor", "qwen2.5:3b-instruct",
                                  "qwen3:4b", "qwen3:8b"] if m]
 
-SYSTEM_PROMPT = ("You are an Operating Systems tutor. Explain CPU scheduling step by step, "
-                 "using only the context provided, and cite the source note.")
+SYSTEM_PROMPT = (
+    "You are an Operating Systems tutor for a CPU-scheduling course. Write concise, exam-ready answers a student "
+    "can learn from.\n"
+    "- Answer the question directly in the first sentence, then define the concepts it asks about.\n"
+    "- Use ONLY the numbered context passages and cite them as [1], [2]. If a claim is not supported by the context, "
+    "leave it out. If the context does not answer the question, say so plainly instead of guessing.\n"
+    "- Keep related concepts distinct (for example the convoy effect is not starvation) and never contradict "
+    "yourself.\n"
+    "- State the assumption behind any claim that holds only under conditions. Do not write 'always' or 'never' "
+    "unless the context does.\n"
+    "- Mention only the algorithms the question concerns; for numerical results use only the simulator output.")
+
+NEEDS_MODEL = {"mcq", "true_false", "fill_blank", "incorrect_statement", "assertion_reason"}
+MAX_REGENERATIONS = 1          # a failed fact check gets one corrected retry, then the vetted course answer is used
 
 
 # --------------------------------------------------------------------------- #
@@ -56,11 +69,11 @@ def ollama_model():
 KEEP_ALIVE = "60m"          # an idle model is otherwise unloaded after 5 min -> 1 min reload on next question
 
 
-def ollama_chat(model, user_prompt, timeout=300, retries=1):
+def ollama_chat(model, user_prompt, timeout=300, retries=1, system=None):
     body = json.dumps({
         "model": model, "stream": False, "think": False, "keep_alive": KEEP_ALIVE,
         "options": {"temperature": 0.2, "num_predict": 600, "num_ctx": 4096},
-        "messages": [{"role": "system", "content": SYSTEM_PROMPT},
+        "messages": [{"role": "system", "content": system or SYSTEM_PROMPT},
                      {"role": "user", "content": user_prompt}],
     }).encode()
     req = urllib.request.Request(f"{OLLAMA_URL}/api/chat", data=body,
@@ -98,6 +111,18 @@ FACT_CARD = ("Definitions used in this course (always correct; never change or r
              "while SRTF, preemptive priority and Round Robin can.")
 
 
+CONCEPT_FACTS = (
+    "Scheduling facts for explanations (state their assumptions; never contradict them): "
+    "the convoy effect is a performance problem classically seen in FCFS, where short processes wait behind one long "
+    "CPU-bound process (higher average waiting time, idle I/O devices); the wait is long but finite, and it is not "
+    "starvation. Starvation means indefinite postponement of a process that keeps waiting for the CPU. It can occur in "
+    "SJF/SRTF when shorter jobs keep arriving ahead of a long job, and in preemptive or non-preemptive Priority "
+    "scheduling when low-priority processes are repeatedly bypassed; aging (gradually raising the priority of waiting "
+    "processes) mitigates it. Standard FCFS does not normally starve a process, assuming the processes ahead of it "
+    "terminate. Round Robin gives every ready process a bounded time quantum in cyclic order, so under standard "
+    "assumptions it avoids starvation; it does not prioritise short processes (short jobs just finish in fewer turns).")
+
+
 def _context_text(h, result):
     """The chunk text handed to the LLM. For a concept question (no verified
     `result` of its own) strip worked-example sentences out of the context:
@@ -110,9 +135,9 @@ def _context_text(h, result):
     return " ".join(p for p in parts if not _is_worked_example(p))
 
 
-def build_prompt(question, hits, result=None, idf=None, examples=True, web_hits=None):
+def build_prompt(question, hits, result=None, idf=None, examples=True, web_hits=None, revision=None):
     ctx = "\n\n".join(f"[{i+1}] ({cite(h)})\n{_context_text(h, result)}" for i, h in enumerate(hits))
-    parts = [FACT_CARD, f"Context from the course material:\n{ctx}"]
+    parts = [FACT_CARD] + ([CONCEPT_FACTS] if not result else []) + [f"Context from the course material:\n{ctx}"]
     if web_hits and not result:
         n0 = len(hits)
         web = "\n\n".join(f"[{n0 + i + 1}] (web: {web_title(h)})\n{h['text']}" for i, h in enumerate(web_hits))
@@ -139,6 +164,8 @@ def build_prompt(question, hits, result=None, idf=None, examples=True, web_hits=
                      "Cite the context as [1], [2], [3] where you use it. Do not invent a numeric example "
                      "(process list, burst times, a Gantt chart, or waiting/turnaround numbers): the student "
                      "gets verified numbers from the simulator separately, never from you.")
+    if revision:                                   # (rejected answer, what was wrong with it)
+        parts.append(f"Rejected answer:\n{revision[0]}\n\n{revision[1]}")
     return "\n\n".join(parts)
 
 
@@ -430,7 +457,7 @@ def qa_direct(question, hits):
     qa = [h for h in hits if is_qa_title(h.get("title"))]
     if not qa:
         return None
-    close = [h for h in qa if qa[0]["score"] - h["score"] <= 0.02]
+    close = [h for h in qa if qa[0]["score"] - h["score"] <= 0.05]
     top = max(close, key=lambda h: h.get("title_boost", 0))
     title = top["title"]
     if top["score"] < 0.2:
@@ -468,11 +495,14 @@ ALGO_NAMES = [      # (key, pattern, display name); a sentence "names" the algor
     ("edf", r"\bedf\b|earliest deadline", "EDF (Earliest Deadline First)"),
     ("priority", r"\bpriority\b", "Priority Scheduling"),
 ]
+ALGO_LABEL_FULL = {"fcfs": "FCFS", "sjf": "SJF", "srtf": "SRTF", "priority": "Priority", "priority_p": "preemptive Priority",
+                   "rr": "Round Robin"}
 ALGO_LABEL_BY_TAG = {"FCFS": "fcfs", "SJF": "sjf", "Round Robin": "rr", "Priority": "priority", "MLFQ": "mlfq"}
 ALGO_DISPLAY = {k: label for k, _, label in ALGO_NAMES}
 CANON_ALGOS = {"fcfs", "rr", "sjf", "srtf", "hrrn", "mlfq", "edf"}
 EVIDENCE_MIN = 0.5         # share of the question's (weighted) terms the best sentence must contain
 TOP_K_SHOWN = 3           # passages shown and sent to the model, as for every other concept question
+MAX_CONCEPT_PASSAGES = 5     # passages sent to the model for a multi-concept question (num_ctx is 4096 tokens)
 IDENTIFY_POOL = 12         # passages searched for evidence; only the ones actually used are shown
 
 
@@ -498,6 +528,7 @@ def selection_evidence(question, hits, idf=None):
     if not terms or (len(terms) < 2 and len(canon_tokens(question)) > 1):
         return None
     total = sum(w(t) for t in terms)
+    q_neg = bool(re.search(r"\b(?:not|no|never|cannot|can't|n't|without|doesn't|don't)\b", question, re.I))
     asked = terms & CANON_ALGOS                 # the question itself describes the algorithm by name ("shortest remaining")
     scored, seen = [], set()
     for hi, h in enumerate(hits):
@@ -508,6 +539,11 @@ def selection_evidence(question, hits, idf=None):
                     or re.search(r"https?://|\bISBN\b", sent) or _is_worked_example(sent)):
                 continue
             seen.add(key)
+            if not q_neg and re.search(r"\b(?:not|no|never|cannot|can't|n't|without)\b", sent, re.I):
+                continue                 # "FCFS and Round Robin do NOT cause starvation" does not answer "which algorithm causes starvation"
+            if re.match(r"(?:It|This|That|They|Then|In that case)\b", sent.strip()) and re.search(
+                    r"\bif\b|what happens|very (?:large|small)", (h.get("title") or ""), re.I):
+                continue                 # "It then has the convoy effect": about a hypothetical case, not the passage's own algorithm
             toks = canon_tokens(sent)
             hit_w = sum(w(t) for t in terms & toks)
             if not hit_w:
@@ -560,6 +596,25 @@ def numerical_summary(result, notes):
             "Open *Walk me through it, step by step* to replay every choice the scheduler makes.")
 
 
+def comparison_text(results, route):
+    """Several algorithms run on the SAME validated process data: a table of the averages, which is lowest on this
+    workload (never 'the best algorithm'), and each Gantt chart. Every number comes from the simulator."""
+    rows = ["| Algorithm | Avg waiting | Avg turnaround | Avg response |", "|---|---|---|---|"]
+    for r in results:
+        q = f" (q={r['quantum']})" if r["quantum"] else ""
+        rows.append(f"| {r['algorithm_name']}{q} | {r['avg_waiting']:.2f} | {r['avg_turnaround']:.2f} | {r['avg_response']:.2f} |")
+    best = min(results, key=lambda r: r["avg_waiting"])
+    tied = [r for r in results if r["avg_waiting"] == best["avg_waiting"]]
+    verdict = (f"On these processes, **{' and '.join(r['algorithm_name'] for r in tied)}** "
+               f"{'give' if len(tied) > 1 else 'gives'} the lowest average waiting time ({best['avg_waiting']:.2f}). "
+               "That holds for this workload and this metric only: another metric (response time, fairness) or another "
+               "set of processes can favour a different algorithm.")
+    charts = "\n\n".join(f"**{r['algorithm_name']}**\n```\n{gantt_text(r['gantt'])}\n```" for r in results)
+    note = ("\n\nAssumptions: " + "; ".join(route.notes) + ".") if route.notes else ""
+    return ("Solved by the scheduling simulator (computed, not generated), all algorithms on the same data:\n\n"
+            + "\n".join(rows) + "\n\n" + verdict + note + "\n\n" + charts)
+
+
 def template_numerical(result, notes):
     q = f" with time quantum {result['quantum']}" if result["quantum"] else ""
     out = [f"**{result['algorithm_name']}{q}**: solved by the scheduling simulator "
@@ -581,6 +636,61 @@ def template_numerical(result, notes):
 
 
 # --------------------------------------------------------------------------- #
+# ---- multi-part questions: "Why is SJF optimal, and why can't real systems use it?" -----------------------------------
+_WH = r"(?:why|how|when|what|which|where|who|can|could|does|do|is|are|should|would|will)"
+_JOIN = re.compile(r"\s*(?:\?+\s+|;\s+|,?\s+and\s+(?:also\s+|then\s+)?(?=" + _WH + r"\b)|,?\s+(?:also|plus)\s+(?=" + _WH + r"\b))", re.I)
+_PRONOUN = re.compile(r"\b(?:it|they|them|this algorithm|that algorithm|this one|that one)\b", re.I)
+MAX_PARTS = 3
+
+
+def split_parts(question, in_domain=None):
+    """Split a compound concept question into standalone questions, or return [question] for a single one.
+
+    Every part must be a real question of its own (>= 3 words, opening with a question word or a verb like
+    "explain"). A pronoun, or a missing subject, in a later part is filled in from the algorithm named earlier
+    ("why can't real systems use it" -> "why can't real systems use SJF"), so each part can be retrieved and
+    answered on its own. `in_domain(text)` keeps a long off-topic part ("how does B-tree indexing work") from borrowing
+    the algorithm of an on-topic part and passing as in scope."""
+    q = question.strip()
+    if re.search(r"\d", q) and re.search(r"\bP\d|burst|arriv|quantum", q, re.I):
+        return [q]                                            # a scheduling problem, not a compound question
+    pieces = [x.strip(" ,;?") for x in _JOIN.split(q) if x and x.strip(" ,;?")]
+    if not 2 <= len(pieces) <= MAX_PARTS:
+        return [q]
+    opener = re.compile(r"^\W*(?:" + _WH + r"|explain|describe|compare|define|give|tell|list|state)\b", re.I)
+    if any(len(x.split()) < 3 for x in pieces) or not all(opener.match(x) for x in pieces[1:]):
+        return [q]
+    named = []
+    for key, pat, _ in ALGO_NAMES:
+        m = re.search(pat, pieces[0], re.I)
+        if m:
+            named.append((m.start(), m.group(0)))
+    names = [t for _, t in sorted(named)]
+    parts = [pieces[0]]
+    for x in pieces[1:]:
+        if not algorithms_in(x):
+            if not names:
+                if _PRONOUN.search(x):
+                    return [q]                                # "how can it be fixed" with nothing for "it" to mean
+            else:
+                subject = " and ".join(dict.fromkeys(names))
+                if _PRONOUN.search(x):
+                    x = _PRONOUN.sub(subject, x, count=1)
+                elif in_domain is None or len(x.split()) <= 4 or in_domain(x):
+                    x = f"{x} ({subject})"
+        parts.append(x)
+    wh = re.compile(r"^\W*" + _WH + r"\b", re.I)
+    return [x + "?" if wh.match(x) and not x.endswith("?") else x for x in parts]
+
+
+_LEVEL_RANK = {"error": 0, "unverified": 1, "none": 2, "checked": 3, "stored": 4, "verified": 5}
+
+
+def _shift_citations(text, offset):
+    """Part 2's [1] must point at its own passage once the passages of part 1 come first in the source list."""
+    return re.sub(r"\[(\d+)\]", lambda m: f"[{int(m.group(1)) + offset}]", text) if offset else text
+
+
 class Tutor:
     def __init__(self, use_llm=True):
         self.retriever = Retriever()
@@ -635,6 +745,8 @@ class Tutor:
         """The 'More detail' card shown under an answer: the single best web passage, quoted briefly.
         `reference` is the text already given to the student (a string or a list of strings)."""
         reference = [reference] if isinstance(reference, str) else list(reference)
+        # a web passage only "adds" something if the WHOLE vetted neighbourhood lacks it, not just the 3 shown passages
+        reference += [h["text"] for h in self.retriever.search(question, k=8, algorithm=topic)]
         if detect_intent(question)[0] in ("analogy", "formula"):
             return None                             # a web page's analogy or formula may differ from the course's
         best = self.web_passages(question, reference, topic, k=1)
@@ -649,23 +761,201 @@ class Tutor:
         return {"title": web_title(h), "url": meta.get("url"), "section": h["page"] if isinstance(h["page"], str) else "",
                 "excerpt": quote, "source": h["source"]}
 
-    def _generate(self, question, hits, result=None, web_hits=None):
+    def _generate(self, question, hits, result=None, web_hits=None, revision=None):
         """LLM answer if available, with the numbers checked; else None."""
         if not self.model:
             return None, []
         try:
             text = ollama_chat(self.model, build_prompt(question, hits, result, self.retriever.idf_lookup(),
                                                       examples=not self.model.startswith("ostutor"),
-                                                      web_hits=web_hits))
+                                                      web_hits=web_hits, revision=revision))
         except Exception as e:  # model crashed / timed out: degrade, don't fail the student
             return None, [f"LLM unavailable ({type(e).__name__}); fell back to template mode"]
         problems = verify_llm_numbers(text, result) if result else []
         return text, problems
 
+    def _concept_hits(self, question, hits, topic):
+        """A question about two or more concepts ("convoy effect vs starvation") needs the passage that defines
+        EACH of them, not five passages about whichever the query words match best.  Keep the passages the question
+        itself retrieved, add the best defining passage per named concept, drop duplicates, cap the context."""
+        concepts = concept_check.concepts_in(question)
+        if len(concepts) < 2:
+            return hits
+        picked, seen = [], set()
+        def add(h):
+            key = (h["source"], h.get("title") or h["text"][:60])
+            if key not in seen:
+                seen.add(key)
+                picked.append(h)
+        for h in hits[:2]:
+            add(h)
+        for c in concepts:
+            for h in self.retriever.search(concept_check.CONCEPT_QUERIES[c][1], k=1, algorithm=topic):
+                add(dict(h, title_match=0, title_boost=0))      # matched the concept query, not the student's question
+        for h in hits[2:]:
+            add(h)
+        return picked[:MAX_CONCEPT_PASSAGES]
+
+    def _pros_cons_hits(self, question):
+        """"Advantages and disadvantages of X" needs the advantages passage AND the disadvantages passage; one ranked
+        list tends to return only one of them. Returns (advantages_hit, disadvantages_hit), either may be None."""
+        found = algorithms_in(question)
+        if not found or not re.search(r"advantage|pros|benefit|merit", question, re.I) \
+                or not re.search(r"disadvantage|cons\b|drawback|demerit|limitation", question, re.I):
+            return None, None
+        name = {"fcfs": "FCFS", "sjf": "SJF", "srtf": "SRTF", "rr": "Round Robin", "priority": "Priority scheduling",
+                "hrrn": "HRRN scheduling", "mlfq": "multilevel feedback queue scheduling", "edf": "EDF"}[found[0][1]]
+        pick = []
+        for kind in ("advantages", "disadvantages"):
+            want = f"What are the {kind} of {name}?"
+            hs = [h for h in self.retriever.search(want, k=3) if h.get("title_match", 0) >= 0.8 and is_qa_title(h.get("title"))
+                  and re.search(r"\b" + kind + r"\b", h["title"], re.I) and not re.search(r"\badvantages and", h["title"], re.I)]
+            pick.append(hs[0] if hs else None)
+        return tuple(pick)
+
+    @staticmethod
+    def _supported(question, hit):
+        """A stored passage may stand as THE answer only if it contains what this kind of question needs and passes the
+        same fact rules as a model answer. (Questions without a registered spec are not filtered.)"""
+        if concept_check.spec_for(question)[0] is None or detect_intent(question)[0] in EXAM_INTENTS:
+            return True
+        return not concept_check.missing_points(question, hit["text"]) and not concept_check.rule_problems(hit["text"])
+
+    def _verified_concept_answer(self, question, hits, web_hits, out):
+        """LLM answer for a concept question after the conceptual fact check: a failed check gets one corrected
+        retry, then the answer is dropped (caller falls back to the vetted course text). Every failure is logged."""
+        llm, problems = self._generate(question, hits, web_hits=web_hits)
+        out["notes"] += problems
+        context = " ".join(h["text"] for h in hits + web_hits)
+        for attempt in range(MAX_REGENERATIONS + 1):
+            if not llm:
+                return None
+            verdict = concept_check.verify(question, llm, context, require_points=detect_intent(question)[0] not in EXAM_INTENTS)
+            if verdict["ok"]:
+                break
+            last = attempt == MAX_REGENERATIONS
+            concept_check.log_failure(question, llm, verdict, f"attempt {attempt + 1}", "fallback" if last else "regenerate")
+            out.setdefault("verification", []).append(verdict["problems"] + verdict["missing"])
+            if last:
+                out["guard"] = verdict["problems"] + verdict["missing"]
+                out["notes"].append("The model's answer failed the conceptual fact check twice, so the course answer "
+                                    "is shown instead (" + "; ".join((verdict["problems"] + verdict["missing"])[:2])[:240] + ").")
+                return None
+            llm, more = self._generate(question, hits, web_hits=web_hits,
+                                       revision=(llm, concept_check.correction_note(verdict)))
+            out["notes"] += more
+        judge_model = os.environ.get("OSTUTOR_JUDGE_MODEL")        # optional second opinion; advisory, never blocks
+        if judge_model and llm:
+            try:
+                issues = concept_check.parse_judge(ollama_chat(
+                    judge_model, concept_check.judge_prompt(question, llm, context), system="You are a strict fact checker."))
+            except Exception:
+                issues = []
+            if issues:
+                concept_check.log_failure(question, llm, {"problems": issues, "missing": []}, "judge", "advisory")
+                out["notes"].append("Independent model check (advisory, may be wrong): " + "; ".join(issues))
+        return llm
+
+    _CHATTY = [(re.compile(r"^\W*(?:i\s*)?(?:do\s*n'?o?t|dont|don'?t|can'?t|cannot|cant|am not able to)\s+"
+                           r"(?:really\s+)?(?:understand|get|follow)\s+(?:how\s+|what\s+|why\s+)?(.+)$", re.I), "explain "),
+               (re.compile(r"^\W*i(?:'m| am)\s+(?:so\s+|really\s+)?(?:confused|lost|stuck)\s+(?:about|on|with|by)\s+(.+)$",
+                           re.I), "explain "),
+               (re.compile(r"^\W*(?:i\s+)?(?:need|want)\s+(?:help|to learn|to understand)\s+(?:with|about|on)?\s*(.+)$", re.I),
+                "explain ")]
+
+    @classmethod
+    def _plain(cls, question):
+        """"I don't understand round robin" -> "explain round robin": the student is asking for an explanation."""
+        for pat, lead in cls._CHATTY:
+            m = pat.match(question.strip())
+            if m:
+                return lead + m.group(1).strip().rstrip(".!")
+        return question
+
     def answer(self, question):
+        """The public entry point: never raises, and says honestly how far the answer was verified (out["status"])."""
+        try:
+            parts = split_parts(self._plain(question), self.retriever.in_domain)
+            out = self._answer_parts(question, parts) if len(parts) > 1 else self._answer(question)
+        except Exception as e:                       # retrieval / parsing / simulation bug: a controlled message, logged
+            concept_check.log_failure(question, "", {"problems": [f"{type(e).__name__}: {e}"], "missing": []}, "pipeline", "error")
+            return {"kind": "error", "algorithm": None, "result": None, "hits": [], "notes": [], "mode": self.mode,
+                    "in_scope": True, "text": "Something went wrong while answering that, so I won't guess. "
+                    "Please try rephrasing, or paste the process table directly. (The error was logged.)",
+                    "status": {"level": "error", "label": "Error: no answer produced"}}
+        if "status" not in out:
+            out["status"] = self._status(question, out)
+        return out
+
+    def _answer_parts(self, question, parts):
+        """Answer each part of a compound question on its own, then join the answers under the part they answer."""
+        subs = []
+        for part in parts:
+            o = self._answer(part)
+            o["status"] = self._status(part, o)
+            subs.append((part, o))
+        answered = [(q, o) for q, o in subs if o.get("in_scope", True) and o["kind"] == "concept" and o.get("text")]
+        if not answered:
+            return self._answer(question)                     # nothing in scope: the ordinary refusal is the honest answer
+        if len(answered) == 1:
+            q, o = answered[0]
+            o["notes"] = o["notes"] + ["Your question had more than one part; the course material only answers: " + q]
+            return o
+        hits, blocks, notes, offset = [], [], [], 0
+        for i, (q, o) in enumerate(answered, 1):
+            body = _shift_citations(o["text"], offset)
+            m = re.match(r"\*\*(.+?)\*\*\n\n", body)         # the stored answer already carries its own bold title
+            blocks.append(f"**Part {i}: {m.group(1)}**\n\n{body[m.end():]}" if m else f"**Part {i}: {q}**\n\n{body}")
+            hits += o.get("hits", [])
+            offset = len(hits)
+            notes += [n for n in o.get("notes", []) if n not in notes]
+        skipped = [q for q, o in subs if not any(o is a for _, a in answered)]
+        if skipped:
+            notes.append("I could not answer from the course material: " + "; ".join(skipped))
+        text = "\n\n---\n\n".join(blocks)
+        worst = min((o["status"] for _, o in answered), key=lambda st_: _LEVEL_RANK[st_["level"]])
+        first = answered[0][1]
+        return {"kind": "multi", "algorithm": first.get("algorithm"), "result": None, "hits": hits, "notes": notes,
+                "mode": first["mode"], "in_scope": True, "text": text, "summary": text,
+                "related": first.get("related", []),
+                "status": {"level": worst["level"], "label": f"Answered in {len(answered)} parts. " + worst["label"]}}
+
+    def _status(self, question, out):
+        """How was this answer checked? Only claim what actually happened."""
+        results = [x for x in ([out.get("result")] + list(out.get("results") or [])) if x]
+        if results:
+            bad = [p for r in results for p in check_invariants(r)]
+            if bad:
+                out["text"] = ("The simulator's own consistency check failed (" + "; ".join(bad[:2]) + "), so I am not showing "
+                               "these numbers as verified. Please report this input.")
+                out["summary"] = out["text"]
+                return {"level": "error", "label": "Simulator self-check failed: numbers withheld"}
+            return {"level": "verified", "label": "Verified: computed by the deterministic simulator; turnaround, waiting, "
+                    "response times and the Gantt chart were re-checked against their definitions"}
+        if out["kind"] in ("needs_data", "invalid"):
+            return {"level": "none", "label": "Nothing to verify: more or corrected input is needed"}
+        if out["kind"] != "concept" or not out.get("in_scope", True):
+            return {"level": "none", "label": "Out of scope: nothing to verify" if not out.get("in_scope", True) else "Not verified"}
+        if out.get("generated"):
+            v = concept_check.verify(question, out["text"], " ".join(h["text"] for h in out.get("hits", [])),
+                                     require_points=detect_intent(question)[0] not in EXAM_INTENTS)
+            return {"level": "checked" if v["ok"] else "unverified",
+                    "label": "Generated answer; passed the automatic fact-rule check (rule-based, not a guarantee)" if v["ok"]
+                    else "Generated answer; the fact-rule check found issues: " + "; ".join((v["problems"] + v["missing"])[:2])}
+        if out.get("mode", "").startswith("retrieval only"):
+            return {"level": "none", "label": "No answer given: only the relevant passages are listed"}
+        if out.get("mode", "").startswith("stored"):
+            return {"level": "stored", "label": "Vetted course text, shown as written (not generated)"}
+        return {"level": "stored", "label": "Sentences quoted from the course material (not generated)"}
+
+    def _answer(self, question):
+        question = self._plain(question)
+        question, typos = self.retriever.autocorrect(question)     # "algortihms" -> "algorithms", "robbin" -> "robin"
         r = route(question)
         out = {"kind": r.kind, "algorithm": r.algorithm, "result": None, "hits": [],
                "notes": list(r.notes), "mode": self.mode, "in_scope": True, "text": ""}
+        if typos:
+            out["notes"].append("Read your question with spelling fixed: " + ", ".join(dict.fromkeys(f"{a} → {b}" for a, b in typos)) + ".")
 
         if r.kind == "practice":
             text, result, _ = verified_problem(r.algorithm)
@@ -673,6 +963,33 @@ class Tutor:
                        text="Here is a new practice problem (generated and checked by the simulator):\n\n"
                             "```\n" + text + "\n```\nTry it yourself, then open the solution below "
                             "or paste your answer in **Check my answer**.")
+            return out
+
+        if r.kind == "needs_data":
+            name = ALGO_LABEL_FULL.get(r.algorithm, "that algorithm")
+            out.update(in_scope=True, text=(
+                f"I can solve that with the scheduling simulator, but I need the process data. "
+                f"Send the {name} problem with each process's arrival and burst time, for example "
+                f"`P1 0 5, P2 1 3, P3 2 8` (pid arrival burst){' and the time quantum, e.g. `quantum 2`' if r.algorithm == 'rr' else ''}. "
+                "If you leave out arrival times I assume every process arrives at t=0"
+                + (", and if you leave out the quantum I assume q = 2" if r.algorithm == "rr" else "")
+                + ". Or ask for *a practice problem* and I will generate one and solve it."))
+            return out
+
+        if r.kind == "invalid":
+            out.update(in_scope=True, text="I can't run the simulator on that input: " + "; ".join(r.notes) + ". "
+                       "Please correct it (every burst time must be a positive whole number, arrival times 0 or more, "
+                       "and a Round Robin time quantum a positive whole number) and send it again.")
+            return out
+
+        if r.kind == "compare_numerical":
+            try:
+                results = [solve(a, r.processes, r.quantum if a == "rr" else None) for a in r.algorithms]
+            except ValueError as e:
+                out.update(text=f"I can't run the simulator on that input: {e}.")
+                return out
+            out.update(results=results, notes=out["notes"] + list(r.notes), text=comparison_text(results, r))
+            out["summary"] = out["text"]
             return out
 
         if r.kind == "worked_example":
@@ -708,7 +1025,11 @@ class Tutor:
             return out
 
         if r.kind == "numerical":
-            result = solve(r.algorithm, r.processes, r.quantum)
+            try:
+                result = solve(r.algorithm, r.processes, r.quantum)
+            except ValueError as e:
+                out.update(text=f"I can't run the simulator on that input: {e}.")
+                return out
             topic_q = f"{result['algorithm_name']} scheduling algorithm how it works"
             hits = self.retriever.search(topic_q, algorithm=r.topic)
             out.update(result=result, hits=hits)
@@ -732,19 +1053,38 @@ class Tutor:
         # concept question
         intent = detect_intent(question)[0]
         hits = self.retriever.search(question, algorithm=r.topic)
+        if intent == "identify" and any(is_qa_title(h.get("title")) and h.get("title_match", 0) >= 0.999 for h in hits):
+            intent = "answer"      # the question IS a stored question: its vetted answer beats matching rule sentences,
+                                   # which cannot tell "X causes starvation" from "X does not cause starvation"
         evidence = None
+        if intent != "identify":
+            hits = self._concept_hits(question, hits, r.topic)
         if intent == "identify":       # "which algorithm ...?": find the passage that states the rule, don't match topics
             hits, evidence = self._identify_hits(question, r.topic, hits)
+        adv = dis = None
+        if intent == "pros_cons":
+            adv, dis = self._pros_cons_hits(question)
+            hits = [h for h in (adv, dis) if h] + [h for h in hits if h is not adv and h is not dis]
         out["hits"] = hits
-        if not self.retriever.in_scope(question, hits) and not (evidence and self.retriever.in_domain(question)):
+        if not self.retriever.in_scope(question, hits) and not (
+                evidence and self.retriever.in_domain(question) and not self.retriever.other_topic(question)):
             out.update(in_scope=False, hits=[],
-                       text="I can only answer questions about CPU scheduling from the course material, "
-                            "and I couldn't find anything relevant to that in my knowledge base. "
+                       text="That question is outside my scope: I only answer questions about CPU scheduling from the "
+                            "course material, and I couldn't find anything relevant to it in my knowledge base. "
                             "Try asking about FCFS, SJF/SRTF, Priority, Round Robin, or paste a "
                             "scheduling problem to solve.")
             return out
         out["related"] = self._related(question, hits)
         out["intent"] = intent
+        if not self.model and intent in NEEDS_MODEL:         # extractive mode cannot judge options or a verdict: say so
+            label = intent.replace("_", " ").replace("mcq", "multiple-choice").replace("true false", "true/false")
+            out["text"] = (f"This is a {label} question. Judging it needs the language model, which is not running, so I "
+                           "won't guess an answer. The course passages most relevant to it are listed below.")
+            out["mode"] = "retrieval only (language model not running)"
+            return out
+        if self.retriever.partial_coverage(question, hits):
+            out["notes"].append("The course material covers only part of this question, so the answer is based on the "
+                                "closest passages. Check the cited sources.")
         rich = rich_answers.find(question, canon_tokens)
         if rich and not os.environ.get("OSTUTOR_NO_SHORTCUT"):          # a hand-written side-by-side table
             out["rich"] = rich_answers.to_markdown(rich)
@@ -754,8 +1094,16 @@ class Tutor:
             out["related"] = [t for t in out["related"] if t != rich["title"]]
             out["more"] = self._more_detail(question, [out["body"]] + [h["text"] for h in hits[:3]], r.topic)
             return out
+        if adv and dis and not os.environ.get("OSTUTOR_NO_SHORTCUT"):         # both halves are vetted: show both
+            out["title"] = display_title(question.strip().rstrip("?.")) 
+            out["body"] = f"**Advantages.** {adv['text']}\n\n**Disadvantages.** {dis['text']}"
+            out["text"] = out["body"] + " [1][2]"
+            out["mode"] = "stored course answers (advantages + disadvantages)"
+            out["more"] = None
+            return out
         # The question is (nearly) a stored course question: the vetted answer beats a small model's paraphrase.
-        exact = [h for h in hits if is_qa_title(h.get("title")) and h.get("title_match", 0) >= 0.999]
+        exact = [h for h in hits if is_qa_title(h.get("title")) and h.get("title_match", 0) >= 0.999
+                 and self._supported(question, h)]
         if exact and not os.environ.get("OSTUTOR_NO_SHORTCUT"):   # set to test the model itself, not the stored answers
             top = max(exact, key=lambda h: (h.get("title_boost", 0),
                                             _lead_class(h["title"]) == _lead_class(question) is not None,
@@ -768,8 +1116,7 @@ class Tutor:
             out["more"] = self._more_detail(question, [top["text"]] + [h["text"] for h in hits[:3]], r.topic)
             return out
         web_hits = self.web_passages(question, [h["text"] for h in hits], r.topic) if self.model else []
-        llm, problems = self._generate(question, hits, web_hits=web_hits)
-        out["notes"] += problems
+        llm = self._verified_concept_answer(question, hits, web_hits, out)
         if llm:
             bad = bad_formulas(llm)
             invented = ungrounded_numbers(llm, " ".join(h["text"] for h in hits + web_hits), question)
@@ -795,7 +1142,7 @@ class Tutor:
             llm = None
         # A whole stored Q&A is only the answer when the question asks for what its title asks; a "which algorithm"
         # question is answered from the evidence sentence, never by the nearest definition.
-        direct = None if llm or intent == "identify" else qa_direct(question, hits)
+        direct = None if llm or intent == "identify" else qa_direct(question, [h for h in hits if self._supported(question, h)])
         if direct:
             out["text"], top = direct
             out["title"], out["body"] = display_title(top["title"]), top["text"]
@@ -803,12 +1150,24 @@ class Tutor:
             out["hits"] = [top] + [h for h in hits if h is not top]
             out["more"] = self._more_detail(question, [top["text"]] + [h["text"] for h in hits[:3]], r.topic)
             return out
-        if intent == "identify":
+        if intent == "identify" and not evidence and not llm:
+            # No sentence states a rule that identifies one algorithm. Before giving up, use the stored Q&A whose
+            # title is clearly the question asked; otherwise say there is nothing (never guess).
+            stored = qa_direct(question, [h for h in hits if self._supported(question, h) and h.get("title_match", 0) >= 0.5])
+            if stored:
+                out["text"], top = stored
+                out["title"], out["body"] = display_title(top["title"]), top["text"]
+                out["related"] = [t for t in out["related"] if t != top["title"]]
+                out["hits"] = [top] + [h for h in hits if h is not top]
+                return out
+            fallback = NO_EVIDENCE      # never show loose passages as if they named the algorithm
+        elif intent == "identify":
             fallback = template_identify(evidence, hits) if evidence else NO_EVIDENCE
         else:
             fallback = template_concept(question, hits, self.retriever.idf_lookup(), r.topic) \
                 or "The material I found is listed below."
         out["text"] = llm or fallback
+        out["generated"] = bool(llm)
         if not out.get("web_used"):               # the answer did not draw on the web page: still offer what it adds
             out["more"] = self._more_detail(question, [out["text"]] + [h["text"] for h in hits], r.topic)
         return out

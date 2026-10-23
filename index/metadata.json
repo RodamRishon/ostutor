@@ -49,7 +49,7 @@
   "algorithm": "FCFS"
  },
  {
-  "text": "First Come First Served (FCFS) runs the ready process that arrived first, strictly in arrival order. It is non-preemptive: a running process keeps the CPU until it finishes or blocks for I/O. On starvation, it cannot starve any process, because every process eventually reaches the head of the FIFO queue. Its average waiting time is often long and very sensitive to the order of arrival, and its context-switch overhead is the lowest, because there is no preemption.",
+  "text": "First Come First Served (FCFS) runs the ready process that arrived first, strictly in arrival order. It is non-preemptive: a running process keeps the CPU until it finishes or blocks for I/O. On starvation, it does not normally starve a process, because every process eventually reaches the head of the FIFO queue as long as the processes ahead of it terminate (a long wait behind a long job is the convoy effect, not starvation). Its average waiting time is often long and very sensitive to the order of arrival, and its context-switch overhead is the lowest, because there is no preemption.",
   "title": "Summarise FCFS in a few lines.",
   "source": "notes/algorithm_facts_generated.md",
   "page": "Summarise FCFS in a few lines.",
@@ -364,7 +364,7 @@
   "algorithm": "Round Robin"
  },
  {
-  "text": "Round Robin (RR) serves a circular FIFO ready queue and gives each process at most one time quantum before moving it to the tail. It is preemptive: a timer interrupt takes the CPU when the quantum expires. On starvation, it cannot starve any process, because every process gets the CPU within (n \u2212 1) \u00d7 q time units. Its average waiting time is usually higher than SJF, but bounded for each turn, and its context-switch overhead is the highest, because it switches at every quantum expiry.",
+  "text": "Round Robin (RR) serves a circular FIFO ready queue and gives each process at most one time quantum before moving it to the tail. It is preemptive: a timer interrupt takes the CPU when the quantum expires. On starvation, it does not starve a ready process under standard assumptions (a finite quantum and a finite ready queue), because every process gets the CPU within (n \u2212 1) \u00d7 q time units. Its average waiting time is usually higher than SJF, but bounded for each turn, and its context-switch overhead is the highest, because it switches at every quantum expiry.",
   "title": "Summarise Round Robin in a few lines.",
   "source": "notes/algorithm_facts_generated.md",
   "page": "Summarise Round Robin in a few lines.",
@@ -385,35 +385,35 @@
   "algorithm": "Round Robin"
  },
  {
-  "text": "FCFS and SJF differ in how they choose the next process and in what they cost. FCFS runs the ready process that arrived first, strictly in arrival order. SJF picks, among the processes that have arrived, the one with the smallest burst time and runs it to completion. Both are non-preemptive. On starvation, FCFS cannot starve any process, because every process eventually reaches the head of the FIFO queue, while SJF can starve long jobs if shorter jobs keep arriving. Average waiting time under FCFS is often long and very sensitive to the order of arrival, while under SJF it is the minimum among non-preemptive algorithms. For context-switch overhead, FCFS has the lowest, because there is no preemption, and SJF has low, because there is no preemption. Choose FCFS for simple batch systems where jobs are not interactive and low overhead matters; choose SJF for batch systems where run times are known or can be estimated well.",
+  "text": "FCFS and SJF differ in how they choose the next process and in what they cost. FCFS runs the ready process that arrived first, strictly in arrival order. SJF picks, among the processes that have arrived, the one with the smallest burst time and runs it to completion. Both are non-preemptive. On starvation, FCFS does not normally starve a process, because every process eventually reaches the head of the FIFO queue as long as the processes ahead of it terminate (a long wait behind a long job is the convoy effect, not starvation), while SJF can starve long jobs if shorter jobs keep arriving. Average waiting time under FCFS is often long and very sensitive to the order of arrival, while under SJF it is the minimum among non-preemptive algorithms. For context-switch overhead, FCFS has the lowest, because there is no preemption, and SJF has low, because there is no preemption. Choose FCFS for simple batch systems where jobs are not interactive and low overhead matters; choose SJF for batch systems where run times are known or can be estimated well.",
   "title": "Compare FCFS and SJF in detail",
   "source": "notes/algorithm_facts_generated.md",
   "page": "Compare FCFS and SJF in detail",
   "algorithm": "FCFS"
  },
  {
-  "text": "FCFS and SRTF differ in how they choose the next process and in what they cost. FCFS runs the ready process that arrived first, strictly in arrival order. SRTF always runs the arrived process with the smallest remaining burst time. FCFS is non-preemptive, whereas SRTF is preemptive. On starvation, FCFS cannot starve any process, because every process eventually reaches the head of the FIFO queue, while SRTF can starve long jobs, even more easily than SJF, because a long job can also be preempted repeatedly. Average waiting time under FCFS is often long and very sensitive to the order of arrival, while under SRTF it is the lowest of all the standard algorithms. For context-switch overhead, FCFS has the lowest, because there is no preemption, and SRTF has higher than SJF, because every preemption is a context switch. Choose FCFS for simple batch systems where jobs are not interactive and low overhead matters; choose SRTF for systems where burst lengths can be estimated accurately and a low average waiting time is the main goal.",
+  "text": "FCFS and SRTF differ in how they choose the next process and in what they cost. FCFS runs the ready process that arrived first, strictly in arrival order. SRTF always runs the arrived process with the smallest remaining burst time. FCFS is non-preemptive, whereas SRTF is preemptive. On starvation, FCFS does not normally starve a process, because every process eventually reaches the head of the FIFO queue as long as the processes ahead of it terminate (a long wait behind a long job is the convoy effect, not starvation), while SRTF can starve long jobs, even more easily than SJF, because a long job can also be preempted repeatedly. Average waiting time under FCFS is often long and very sensitive to the order of arrival, while under SRTF it is the lowest of all the standard algorithms. For context-switch overhead, FCFS has the lowest, because there is no preemption, and SRTF has higher than SJF, because every preemption is a context switch. Choose FCFS for simple batch systems where jobs are not interactive and low overhead matters; choose SRTF for systems where burst lengths can be estimated accurately and a low average waiting time is the main goal.",
   "title": "Compare FCFS and SRTF in detail",
   "source": "notes/algorithm_facts_generated.md",
   "page": "Compare FCFS and SRTF in detail",
   "algorithm": "SJF"
  },
  {
-  "text": "FCFS and non-preemptive Priority differ in how they choose the next process and in what they cost. FCFS runs the ready process that arrived first, strictly in arrival order. non-preemptive Priority picks, among the processes that have arrived, the one with the highest priority (the lowest priority number) and runs it to completion. Both are non-preemptive. On starvation, FCFS cannot starve any process, because every process eventually reaches the head of the FIFO queue, while non-preemptive Priority can starve low-priority processes if higher-priority ones keep arriving, which aging fixes. Average waiting time under FCFS is often long and very sensitive to the order of arrival, while under non-preemptive Priority it is not minimised; it depends on how the priorities are assigned. For context-switch overhead, FCFS has the lowest, because there is no preemption, and non-preemptive Priority has low, because there is no preemption. Choose FCFS for simple batch systems where jobs are not interactive and low overhead matters; choose non-preemptive Priority for systems where processes differ in importance and switching must stay cheap.",
+  "text": "FCFS and non-preemptive Priority differ in how they choose the next process and in what they cost. FCFS runs the ready process that arrived first, strictly in arrival order. non-preemptive Priority picks, among the processes that have arrived, the one with the highest priority (the lowest priority number) and runs it to completion. Both are non-preemptive. On starvation, FCFS does not normally starve a process, because every process eventually reaches the head of the FIFO queue as long as the processes ahead of it terminate (a long wait behind a long job is the convoy effect, not starvation), while non-preemptive Priority can starve low-priority processes if higher-priority ones keep arriving, which aging fixes. Average waiting time under FCFS is often long and very sensitive to the order of arrival, while under non-preemptive Priority it is not minimised; it depends on how the priorities are assigned. For context-switch overhead, FCFS has the lowest, because there is no preemption, and non-preemptive Priority has low, because there is no preemption. Choose FCFS for simple batch systems where jobs are not interactive and low overhead matters; choose non-preemptive Priority for systems where processes differ in importance and switching must stay cheap.",
   "title": "Compare FCFS and non-preemptive Priority in detail",
   "source": "notes/algorithm_facts_generated.md",
   "page": "Compare FCFS and non-preemptive Priority in detail",
   "algorithm": "Priority"
  },
  {
-  "text": "FCFS and preemptive Priority differ in how they choose the next process and in what they cost. FCFS runs the ready process that arrived first, strictly in arrival order. preemptive Priority always runs the arrived process with the highest priority (the lowest priority number). FCFS is non-preemptive, whereas preemptive Priority is preemptive. On starvation, FCFS cannot starve any process, because every process eventually reaches the head of the FIFO queue, while preemptive Priority can starve low-priority processes, which aging fixes. Average waiting time under FCFS is often long and very sensitive to the order of arrival, while under preemptive Priority it is not minimised; it depends on how the priorities are assigned. For context-switch overhead, FCFS has the lowest, because there is no preemption, and preemptive Priority has higher than non-preemptive Priority, because every preemption is a context switch. Choose FCFS for simple batch systems where jobs are not interactive and low overhead matters; choose preemptive Priority for systems with urgent processes that must run immediately, such as interactive or real-time work.",
+  "text": "FCFS and preemptive Priority differ in how they choose the next process and in what they cost. FCFS runs the ready process that arrived first, strictly in arrival order. preemptive Priority always runs the arrived process with the highest priority (the lowest priority number). FCFS is non-preemptive, whereas preemptive Priority is preemptive. On starvation, FCFS does not normally starve a process, because every process eventually reaches the head of the FIFO queue as long as the processes ahead of it terminate (a long wait behind a long job is the convoy effect, not starvation), while preemptive Priority can starve low-priority processes, which aging fixes. Average waiting time under FCFS is often long and very sensitive to the order of arrival, while under preemptive Priority it is not minimised; it depends on how the priorities are assigned. For context-switch overhead, FCFS has the lowest, because there is no preemption, and preemptive Priority has higher than non-preemptive Priority, because every preemption is a context switch. Choose FCFS for simple batch systems where jobs are not interactive and low overhead matters; choose preemptive Priority for systems with urgent processes that must run immediately, such as interactive or real-time work.",
   "title": "Compare FCFS and preemptive Priority in detail",
   "source": "notes/algorithm_facts_generated.md",
   "page": "Compare FCFS and preemptive Priority in detail",
   "algorithm": "Priority"
  },
  {
-  "text": "FCFS and Round Robin differ in how they choose the next process and in what they cost. FCFS runs the ready process that arrived first, strictly in arrival order. Round Robin serves a circular FIFO ready queue and gives each process at most one time quantum before moving it to the tail. FCFS is non-preemptive, whereas Round Robin is preemptive. On starvation, FCFS cannot starve any process, because every process eventually reaches the head of the FIFO queue, while Round Robin cannot starve any process, because every process gets the CPU within (n \u2212 1) \u00d7 q time units. Average waiting time under FCFS is often long and very sensitive to the order of arrival, while under Round Robin it is usually higher than SJF, but bounded for each turn. For context-switch overhead, FCFS has the lowest, because there is no preemption, and Round Robin has the highest, because it switches at every quantum expiry. Choose FCFS for simple batch systems where jobs are not interactive and low overhead matters; choose Round Robin for time-sharing and interactive systems where every user needs regular turns.",
+  "text": "FCFS and Round Robin differ in how they choose the next process and in what they cost. FCFS runs the ready process that arrived first, strictly in arrival order. Round Robin serves a circular FIFO ready queue and gives each process at most one time quantum before moving it to the tail. FCFS is non-preemptive, whereas Round Robin is preemptive. On starvation, FCFS does not normally starve a process, because every process eventually reaches the head of the FIFO queue as long as the processes ahead of it terminate (a long wait behind a long job is the convoy effect, not starvation), while Round Robin does not starve a ready process under standard assumptions (a finite quantum and a finite ready queue), because every process gets the CPU within (n \u2212 1) \u00d7 q time units. Average waiting time under FCFS is often long and very sensitive to the order of arrival, while under Round Robin it is usually higher than SJF, but bounded for each turn. For context-switch overhead, FCFS has the lowest, because there is no preemption, and Round Robin has the highest, because it switches at every quantum expiry. Choose FCFS for simple batch systems where jobs are not interactive and low overhead matters; choose Round Robin for time-sharing and interactive systems where every user needs regular turns.",
   "title": "Compare FCFS and Round Robin in detail",
   "source": "notes/algorithm_facts_generated.md",
   "page": "Compare FCFS and Round Robin in detail",
@@ -441,7 +441,7 @@
   "algorithm": "Priority"
  },
  {
-  "text": "SJF and Round Robin differ in how they choose the next process and in what they cost. SJF picks, among the processes that have arrived, the one with the smallest burst time and runs it to completion. Round Robin serves a circular FIFO ready queue and gives each process at most one time quantum before moving it to the tail. SJF is non-preemptive, whereas Round Robin is preemptive. On starvation, SJF can starve long jobs if shorter jobs keep arriving, while Round Robin cannot starve any process, because every process gets the CPU within (n \u2212 1) \u00d7 q time units. Average waiting time under SJF is the minimum among non-preemptive algorithms, while under Round Robin it is usually higher than SJF, but bounded for each turn. For context-switch overhead, SJF has low, because there is no preemption, and Round Robin has the highest, because it switches at every quantum expiry. Choose SJF for batch systems where run times are known or can be estimated well; choose Round Robin for time-sharing and interactive systems where every user needs regular turns.",
+  "text": "SJF and Round Robin differ in how they choose the next process and in what they cost. SJF picks, among the processes that have arrived, the one with the smallest burst time and runs it to completion. Round Robin serves a circular FIFO ready queue and gives each process at most one time quantum before moving it to the tail. SJF is non-preemptive, whereas Round Robin is preemptive. On starvation, SJF can starve long jobs if shorter jobs keep arriving, while Round Robin does not starve a ready process under standard assumptions (a finite quantum and a finite ready queue), because every process gets the CPU within (n \u2212 1) \u00d7 q time units. Average waiting time under SJF is the minimum among non-preemptive algorithms, while under Round Robin it is usually higher than SJF, but bounded for each turn. For context-switch overhead, SJF has low, because there is no preemption, and Round Robin has the highest, because it switches at every quantum expiry. Choose SJF for batch systems where run times are known or can be estimated well; choose Round Robin for time-sharing and interactive systems where every user needs regular turns.",
   "title": "Compare SJF and Round Robin in detail",
   "source": "notes/algorithm_facts_generated.md",
   "page": "Compare SJF and Round Robin in detail",
@@ -462,7 +462,7 @@
   "algorithm": "Priority"
  },
  {
-  "text": "SRTF and Round Robin differ in how they choose the next process and in what they cost. SRTF always runs the arrived process with the smallest remaining burst time. Round Robin serves a circular FIFO ready queue and gives each process at most one time quantum before moving it to the tail. Both are preemptive. On starvation, SRTF can starve long jobs, even more easily than SJF, because a long job can also be preempted repeatedly, while Round Robin cannot starve any process, because every process gets the CPU within (n \u2212 1) \u00d7 q time units. Average waiting time under SRTF is the lowest of all the standard algorithms, while under Round Robin it is usually higher than SJF, but bounded for each turn. For context-switch overhead, SRTF has higher than SJF, because every preemption is a context switch, and Round Robin has the highest, because it switches at every quantum expiry. Choose SRTF for systems where burst lengths can be estimated accurately and a low average waiting time is the main goal; choose Round Robin for time-sharing and interactive systems where every user needs regular turns.",
+  "text": "SRTF and Round Robin differ in how they choose the next process and in what they cost. SRTF always runs the arrived process with the smallest remaining burst time. Round Robin serves a circular FIFO ready queue and gives each process at most one time quantum before moving it to the tail. Both are preemptive. On starvation, SRTF can starve long jobs, even more easily than SJF, because a long job can also be preempted repeatedly, while Round Robin does not starve a ready process under standard assumptions (a finite quantum and a finite ready queue), because every process gets the CPU within (n \u2212 1) \u00d7 q time units. Average waiting time under SRTF is the lowest of all the standard algorithms, while under Round Robin it is usually higher than SJF, but bounded for each turn. For context-switch overhead, SRTF has higher than SJF, because every preemption is a context switch, and Round Robin has the highest, because it switches at every quantum expiry. Choose SRTF for systems where burst lengths can be estimated accurately and a low average waiting time is the main goal; choose Round Robin for time-sharing and interactive systems where every user needs regular turns.",
   "title": "Compare SRTF and Round Robin in detail",
   "source": "notes/algorithm_facts_generated.md",
   "page": "Compare SRTF and Round Robin in detail",
@@ -476,14 +476,14 @@
   "algorithm": "Priority"
  },
  {
-  "text": "non-preemptive Priority and Round Robin differ in how they choose the next process and in what they cost. non-preemptive Priority picks, among the processes that have arrived, the one with the highest priority (the lowest priority number) and runs it to completion. Round Robin serves a circular FIFO ready queue and gives each process at most one time quantum before moving it to the tail. non-preemptive Priority is non-preemptive, whereas Round Robin is preemptive. On starvation, non-preemptive Priority can starve low-priority processes if higher-priority ones keep arriving, which aging fixes, while Round Robin cannot starve any process, because every process gets the CPU within (n \u2212 1) \u00d7 q time units. Average waiting time under non-preemptive Priority is not minimised; it depends on how the priorities are assigned, while under Round Robin it is usually higher than SJF, but bounded for each turn. For context-switch overhead, non-preemptive Priority has low, because there is no preemption, and Round Robin has the highest, because it switches at every quantum expiry. Choose non-preemptive Priority for systems where processes differ in importance and switching must stay cheap; choose Round Robin for time-sharing and interactive systems where every user needs regular turns.",
+  "text": "non-preemptive Priority and Round Robin differ in how they choose the next process and in what they cost. non-preemptive Priority picks, among the processes that have arrived, the one with the highest priority (the lowest priority number) and runs it to completion. Round Robin serves a circular FIFO ready queue and gives each process at most one time quantum before moving it to the tail. non-preemptive Priority is non-preemptive, whereas Round Robin is preemptive. On starvation, non-preemptive Priority can starve low-priority processes if higher-priority ones keep arriving, which aging fixes, while Round Robin does not starve a ready process under standard assumptions (a finite quantum and a finite ready queue), because every process gets the CPU within (n \u2212 1) \u00d7 q time units. Average waiting time under non-preemptive Priority is not minimised; it depends on how the priorities are assigned, while under Round Robin it is usually higher than SJF, but bounded for each turn. For context-switch overhead, non-preemptive Priority has low, because there is no preemption, and Round Robin has the highest, because it switches at every quantum expiry. Choose non-preemptive Priority for systems where processes differ in importance and switching must stay cheap; choose Round Robin for time-sharing and interactive systems where every user needs regular turns.",
   "title": "Compare non-preemptive Priority and Round Robin in detail",
   "source": "notes/algorithm_facts_generated.md",
   "page": "Compare non-preemptive Priority and Round Robin in detail",
   "algorithm": "Priority"
  },
  {
-  "text": "preemptive Priority and Round Robin differ in how they choose the next process and in what they cost. preemptive Priority always runs the arrived process with the highest priority (the lowest priority number). Round Robin serves a circular FIFO ready queue and gives each process at most one time quantum before moving it to the tail. Both are preemptive. On starvation, preemptive Priority can starve low-priority processes, which aging fixes, while Round Robin cannot starve any process, because every process gets the CPU within (n \u2212 1) \u00d7 q time units. Average waiting time under preemptive Priority is not minimised; it depends on how the priorities are assigned, while under Round Robin it is usually higher than SJF, but bounded for each turn. For context-switch overhead, preemptive Priority has higher than non-preemptive Priority, because every preemption is a context switch, and Round Robin has the highest, because it switches at every quantum expiry. Choose preemptive Priority for systems with urgent processes that must run immediately, such as interactive or real-time work; choose Round Robin for time-sharing and interactive systems where every user needs regular turns.",
+  "text": "preemptive Priority and Round Robin differ in how they choose the next process and in what they cost. preemptive Priority always runs the arrived process with the highest priority (the lowest priority number). Round Robin serves a circular FIFO ready queue and gives each process at most one time quantum before moving it to the tail. Both are preemptive. On starvation, preemptive Priority can starve low-priority processes, which aging fixes, while Round Robin does not starve a ready process under standard assumptions (a finite quantum and a finite ready queue), because every process gets the CPU within (n \u2212 1) \u00d7 q time units. Average waiting time under preemptive Priority is not minimised; it depends on how the priorities are assigned, while under Round Robin it is usually higher than SJF, but bounded for each turn. For context-switch overhead, preemptive Priority has higher than non-preemptive Priority, because every preemption is a context switch, and Round Robin has the highest, because it switches at every quantum expiry. Choose preemptive Priority for systems with urgent processes that must run immediately, such as interactive or real-time work; choose Round Robin for time-sharing and interactive systems where every user needs regular turns.",
   "title": "Compare preemptive Priority and Round Robin in detail",
   "source": "notes/algorithm_facts_generated.md",
   "page": "Compare preemptive Priority and Round Robin in detail",
@@ -516,6 +516,62 @@
   "source": "notes/algorithm_reference.md",
   "page": "What are the different types of CPU scheduling algorithms?",
   "algorithm": "Comparison"
+ },
+ {
+  "text": "Imagine one cashier (the CPU) and a line of customers (the processes). The cashier can serve only one customer at a time, so someone must decide who is served next: that decision-maker is the scheduler. If customers are served in the order they arrived, that is FCFS. If the customer with the fewest items goes first, that is SJF. If the cashier serves each customer for a fixed couple of minutes and then moves on to the next one in the line, that is Round Robin. If VIP customers always go first, that is Priority scheduling. The aim is to keep the cashier busy and to keep everyone's waiting as short and as fair as possible.",
+  "title": "Explain CPU scheduling in simple words with a real-life analogy.",
+  "source": "notes/algorithm_reference.md",
+  "page": "Explain CPU scheduling in simple words with a real-life analogy.",
+  "algorithm": "Comparison"
+ },
+ {
+  "text": "A scheduler is the part of the operating system that decides which process or job gets a resource next. In CPU scheduling, the short-term (CPU) scheduler chooses which process in the ready queue runs on the CPU next, and it runs very often, so it must be fast. The long-term (job) scheduler decides which jobs are admitted into memory, and the medium-term scheduler swaps processes out of and back into memory. The dispatcher then gives the CPU to the process the scheduler chose.",
+  "title": "What is a scheduler?",
+  "source": "notes/algorithm_reference.md",
+  "page": "What is a scheduler?",
+  "algorithm": "General"
+ },
+ {
+  "text": "Burst time (also called CPU burst or service time) is the amount of CPU time a process needs before it finishes or blocks for I/O. It is the length of one CPU burst, and in scheduling numericals it is the number of time units the process must spend on the CPU. Waiting time is turnaround time minus burst time.",
+  "title": "What is burst time?",
+  "source": "notes/algorithm_reference.md",
+  "page": "What is burst time?",
+  "algorithm": "General"
+ },
+ {
+  "text": "Arrival time is the time at which a process enters the ready queue and becomes available to be scheduled. A process cannot run before its arrival time, so it matters most for FCFS and for preemptive algorithms such as SRTF, where a new arrival can change the decision. Turnaround time is measured from the arrival time: turnaround time is completion time minus arrival time.",
+  "title": "What is arrival time?",
+  "source": "notes/algorithm_reference.md",
+  "page": "What is arrival time?",
+  "algorithm": "SJF"
+ },
+ {
+  "text": "CPU scheduling is needed because the CPU is much faster than I/O devices and there are usually more ready processes than CPUs. Without scheduling, the CPU would sit idle whenever a process waits for I/O, and nothing would decide which of several ready processes runs next. A scheduler keeps the CPU busy and chooses the order so that the system meets its goals: high CPU utilisation and throughput, low waiting, turnaround and response time, and fairness between processes.",
+  "title": "Why is CPU scheduling needed?",
+  "source": "notes/algorithm_reference.md",
+  "page": "Why is CPU scheduling needed?",
+  "algorithm": "General"
+ },
+ {
+  "text": "CPU scheduling decides which ready process runs on the CPU next, so that the CPU stays busy and processes get fair, quick service. A scheduler is judged by criteria such as CPU utilisation and throughput (to maximise) and waiting time, turnaround time and response time (to minimise). The main algorithms are FCFS (serve in arrival order), SJF and SRTF (shortest burst first, optimal for average waiting time), Priority scheduling (highest priority first, with aging to prevent starvation) and Round Robin (a fixed time quantum in turn, best for response time). Algorithms are either non-preemptive, where a process keeps the CPU until it finishes or blocks, or preemptive, where it can be interrupted. Multilevel queue and multilevel feedback queue schedulers combine these ideas, and real operating systems such as Linux and Windows use such combinations.",
+  "title": "Give an overview of CPU scheduling.",
+  "source": "notes/algorithm_reference.md",
+  "page": "Give an overview of CPU scheduling.",
+  "algorithm": "Comparison"
+ },
+ {
+  "text": "The purpose of CPU scheduling is to decide which ready process gets the CPU next, so that the CPU is never idle while work is waiting and the system meets its goals. A good scheduler maximises CPU utilisation and throughput and minimises waiting time, turnaround time and response time, while staying fair to every process. It is what makes multiprogramming useful: when one process waits for I/O, the CPU is given to another.",
+  "title": "What is the purpose of CPU scheduling?",
+  "source": "notes/algorithm_reference.md",
+  "page": "What is the purpose of CPU scheduling?",
+  "algorithm": "General"
+ },
+ {
+  "text": "Completion time is the clock time at which a process finishes its execution, read from the end of that process's last box in the Gantt chart. It is used to get turnaround time (completion time \u2212 arrival time) and then waiting time (turnaround time \u2212 burst time).",
+  "title": "What is completion time?",
+  "source": "notes/algorithm_reference.md",
+  "page": "What is completion time?",
+  "algorithm": "General"
  },
  {
   "text": "The long-term (job) scheduler decides which jobs are admitted into memory, so it controls the degree of multiprogramming. The short-term (CPU) scheduler decides which ready process runs on the CPU next and runs very frequently, so it must be fast. The medium-term scheduler swaps processes out of memory and back in to reduce the degree of multiprogramming. The algorithms FCFS, SJF, Priority and Round Robin are all short-term (CPU) scheduling algorithms.",
@@ -658,7 +714,7 @@
   "algorithm": "FCFS"
  },
  {
-  "text": "No. FCFS cannot cause starvation, because the queue is served strictly in arrival order, so every process eventually reaches the head of the queue and gets the CPU. A process may wait a long time behind a long job, but it does not wait forever.",
+  "text": "No, not in standard FCFS. The queue is served strictly in arrival order, so, assuming every process ahead of it eventually finishes or blocks, each process reaches the head of the queue and gets the CPU. A process may wait a long time behind a long job; that is the convoy effect (a long but finite delay), not starvation, which means indefinite postponement. Only an unrealistic case such as a process ahead that never terminates would block the queue for ever.",
   "title": "Does FCFS cause starvation?",
   "source": "notes/algorithm_reference.md",
   "page": "Does FCFS cause starvation?",
@@ -875,7 +931,7 @@
   "algorithm": "Round Robin"
  },
  {
-  "text": "Round Robin is fair: every process gets the CPU in turn. It has no starvation, because every process reaches the head of the queue within a bounded time. It gives good response time, which suits interactive time-sharing systems. It is simple to implement with a circular queue and a timer.",
+  "text": "Round Robin is fair: every process gets the CPU in turn. Under standard assumptions it has no starvation, because every ready process reaches the head of the queue within a bounded time ((n \u2212 1) \u00d7 q). It gives good response time, which suits interactive time-sharing systems. It is simple to implement with a circular queue and a timer.",
   "title": "What are the advantages of Round Robin?",
   "source": "notes/algorithm_reference.md",
   "page": "What are the advantages of Round Robin?",
@@ -1061,6 +1117,118 @@
   "title": "Which scheduling algorithm is the fairest?",
   "source": "notes/algorithm_reference.md",
   "page": "Which scheduling algorithm is the fairest?",
+  "algorithm": "Comparison"
+ },
+ {
+  "text": "No single algorithm is the best in every situation, because the scheduling criteria conflict, so the best choice depends on what the system must optimise. For the lowest average waiting time and turnaround time, SRTF (preemptive SJF) is optimal, and non-preemptive SJF is optimal among non-preemptive algorithms, because running the shortest job first lets the most processes finish early. But they need the next CPU burst length in advance, which in practice can only be predicted, and they can starve long jobs, so they are rarely used in their pure form. For the best response time and fairness, Round Robin is the better choice, because every process gets a turn within (n \u2212 1) \u00d7 q time units, at the cost of more context switches and a longer average turnaround time. FCFS is the simplest and has no starvation, but the convoy effect makes its average waiting time poor. Priority scheduling suits systems with important tasks but needs aging to avoid starvation. Real general-purpose systems therefore combine ideas, for example multilevel feedback queues, which approximate SJF without knowing burst lengths and still give interactive jobs a quick response.",
+  "title": "Which CPU scheduling algorithm is the best or most efficient, and why?",
+  "source": "notes/algorithm_reference.md",
+  "page": "Which CPU scheduling algorithm is the best or most efficient, and why?",
+  "algorithm": "SJF"
+ },
+ {
+  "text": "SJF is called the most efficient for one specific reason: it gives the minimum average waiting time, and therefore the minimum average turnaround time, for a set of processes whose burst lengths are known. Running a short job first delays only a few processes by a little, while running a long job first delays many processes by a lot, so choosing the shortest job each time keeps the total waiting time as small as possible. It is not the most efficient on every measure: it can starve long jobs, it does not give the best response time, and the length of the next CPU burst is not really known, so real systems estimate it, for example by exponential averaging.",
+  "title": "Why is SJF considered the most efficient scheduling algorithm?",
+  "source": "notes/algorithm_reference.md",
+  "page": "Why is SJF considered the most efficient scheduling algorithm?",
+  "algorithm": "SJF"
+ },
+ {
+  "text": "Shortest Job First gives the least average turnaround time among non-preemptive algorithms, and SRTF gives the least when preemption is allowed and the burst lengths are known. Turnaround time is waiting time plus burst time, and the burst times are fixed, so the algorithm that minimises average waiting time also minimises average turnaround time.",
+  "title": "Which scheduling algorithm gives the least average turnaround time?",
+  "source": "notes/algorithm_reference.md",
+  "page": "Which scheduling algorithm gives the least average turnaround time?",
+  "algorithm": "SJF"
+ },
+ {
+  "text": "Shortest Job First and SRTF usually give the highest throughput, because by finishing the shortest jobs first they complete the largest number of processes in a given time. Round Robin with a very small time quantum lowers throughput, because much of the time goes on context switches, and FCFS can lower it when a long job sits at the front of the queue.",
+  "title": "Which scheduling algorithm gives the highest throughput?",
+  "source": "notes/algorithm_reference.md",
+  "page": "Which scheduling algorithm gives the highest throughput?",
+  "algorithm": "SJF"
+ },
+ {
+  "text": "First Come First Served is the simplest to implement: the ready queue is a plain FIFO queue, a new process joins the tail and the scheduler always takes the process at the head, with no burst lengths, priorities or time quantum to track. Its simplicity is its main advantage; its main drawback is the convoy effect.",
+  "title": "Which scheduling algorithm is the simplest to implement?",
+  "source": "notes/algorithm_reference.md",
+  "page": "Which scheduling algorithm is the simplest to implement?",
+  "algorithm": "FCFS"
+ },
+ {
+  "text": "No algorithm is the worst in every case, but FCFS usually gives the highest average waiting time when long processes arrive before short ones, because of the convoy effect. Round Robin gives a poor average turnaround time and wastes CPU time on context switches when the time quantum is very small, and it behaves like FCFS when the quantum is very large. Priority scheduling and SJF can starve some processes. Which one is worst depends on the workload and on the criterion being measured.",
+  "title": "Which scheduling algorithm is the worst or least efficient?",
+  "source": "notes/algorithm_reference.md",
+  "page": "Which scheduling algorithm is the worst or least efficient?",
+  "algorithm": "Comparison"
+ },
+ {
+  "text": "Real operating systems do not use one of the textbook algorithms in its pure form; they combine ideas. Windows uses a priority-based, preemptive scheduler with 32 priority levels: the highest-priority ready thread runs, threads of equal priority share the CPU in Round Robin fashion with a time quantum, and the priority of ordinary threads is adjusted dynamically (for example raised after waiting for I/O), which is similar to a multilevel feedback queue. Linux uses the Completely Fair Scheduler (CFS), which always runs the task with the smallest virtual runtime to give every task a fair share of the CPU; from Linux 6.6 its selection rule was replaced by EEVDF (Earliest Eligible Virtual Deadline First), which keeps the same fairness goal. Linux also has separate real-time policies, SCHED_FIFO and SCHED_RR.",
+  "title": "Which scheduling algorithms do real operating systems like Windows and Linux use?",
+  "source": "notes/algorithm_reference.md",
+  "page": "Which scheduling algorithms do real operating systems like Windows and Linux use?",
+  "algorithm": "Priority"
+ },
+ {
+  "text": "It depends on the criterion, and no algorithm is optimal for all of them. SRTF is optimal for average waiting time and average turnaround time when burst lengths and arrival times are known, and non-preemptive SJF is optimal among non-preemptive algorithms. Neither is optimal for fairness or response time, because they can starve long jobs. Round Robin is not optimal for waiting time or turnaround time, but it gives good response time.",
+  "title": "Which scheduling algorithm is optimal?",
+  "source": "notes/algorithm_reference.md",
+  "page": "Which scheduling algorithm is optimal?",
+  "algorithm": "SJF"
+ },
+ {
+  "text": "SJF needs the length of each process's next CPU burst, and the operating system cannot know it in advance. It can only predict it from the recent past, for example by exponential averaging, and a prediction can be wrong. SJF also lets a stream of short jobs starve a long job, and it gives poor response time for interactive use. Real systems therefore use schedulers such as Round Robin, priority scheduling or multilevel feedback queues, which approximate the benefits of SJF without knowing burst lengths.",
+  "title": "Why is SJF not used in practice?",
+  "source": "notes/algorithm_reference.md",
+  "page": "Why is SJF not used in practice?",
+  "algorithm": "SJF"
+ },
+ {
+  "text": "No single algorithm gives the highest CPU utilisation, because utilisation depends mostly on keeping the ready queue non-empty and on how much time is lost to context switches, not on the order of selection. Every algorithm that never leaves the CPU idle while a process is ready keeps it equally busy. Algorithms with few context switches, such as FCFS and non-preemptive SJF, waste the least time on switching, while Round Robin with a very small time quantum lowers utilisation because of context-switch overhead.",
+  "title": "Which scheduling algorithm gives the highest CPU utilisation?",
+  "source": "notes/algorithm_reference.md",
+  "page": "Which scheduling algorithm gives the highest CPU utilisation?",
+  "algorithm": "Comparison"
+ },
+ {
+  "text": "Real-time systems use priority-based schedulers that try to guarantee deadlines. Rate Monotonic scheduling gives a fixed priority to each periodic task, higher for a shorter period, and Earliest Deadline First (EDF) always runs the task with the nearest deadline and is optimal on a single processor when utilisation is at most 100 percent. Round Robin and FCFS give no deadline guarantee, so they are not suitable on their own.",
+  "title": "Which scheduling algorithm is best for real-time systems?",
+  "source": "notes/algorithm_reference.md",
+  "page": "Which scheduling algorithm is best for real-time systems?",
+  "algorithm": "Priority"
+ },
+ {
+  "text": "FCFS is non-preemptive, so a process keeps the CPU until it finishes or blocks. A long job can therefore hold the CPU for a long time (the convoy effect) while interactive users wait, which gives poor response time. Time-sharing systems need every user to get the CPU regularly, which requires preemption with a time quantum, as in Round Robin or a multilevel feedback queue.",
+  "title": "Why is FCFS not suitable for time-sharing systems?",
+  "source": "notes/algorithm_reference.md",
+  "page": "Why is FCFS not suitable for time-sharing systems?",
+  "algorithm": "FCFS"
+ },
+ {
+  "text": "Choose the algorithm from the kind of system and the criterion that matters most. Batch systems care about throughput and turnaround time, so FCFS or SJF/SRTF suit them. Interactive time-sharing systems care about response time and fairness, so Round Robin or a multilevel feedback queue is better. Real-time systems need deadline guarantees, so they use priority-based schemes such as Rate Monotonic or EDF. Also consider whether burst lengths are known (needed for SJF and SRTF), whether starvation must be avoided (SJF and Priority need aging), how much context-switch overhead is acceptable (Round Robin with a small quantum has the most), and how simple the implementation must be (FCFS is the simplest).",
+  "title": "How do you choose the right scheduling algorithm?",
+  "source": "notes/algorithm_reference.md",
+  "page": "How do you choose the right scheduling algorithm?",
+  "algorithm": "Comparison"
+ },
+ {
+  "text": "In a multilevel queue scheduler the ready queue is split into separate queues, such as foreground (interactive) and background (batch), and a process stays permanently in the queue it was assigned to; each queue can use its own algorithm. In a multilevel feedback queue a process can move between queues based on its behaviour: a process that uses its full time allotment moves down to a lower-priority queue, so CPU-bound jobs sink, while interactive jobs that give up the CPU early stay high, and a periodic boost moves waiting jobs back to the top. The multilevel feedback queue is therefore more flexible and prevents starvation, but it is more complex to configure.",
+  "title": "What is the difference between a multilevel queue and a multilevel feedback queue?",
+  "source": "notes/algorithm_reference.md",
+  "page": "What is the difference between a multilevel queue and a multilevel feedback queue?",
+  "algorithm": "MLFQ"
+ },
+ {
+  "text": "Each SJF scheduling decision takes O(n) if the scheduler scans the ready queue for the shortest burst, or O(log n) if the ready queue is a min-heap (priority queue) keyed on burst time. Sorting n processes by burst time up front, as in a simple numerical, takes O(n log n).",
+  "title": "What is the time complexity of SJF scheduling?",
+  "source": "notes/algorithm_reference.md",
+  "page": "What is the time complexity of SJF scheduling?",
+  "algorithm": "SJF"
+ },
+ {
+  "text": "The cost is per scheduling decision. FCFS and Round Robin take O(1), because the scheduler only removes the process at the head of a FIFO queue. SJF, SRTF and Priority scheduling take O(n) if they scan the ready queue, or O(log n) with a heap keyed on burst time or priority. A multilevel feedback queue takes O(1) when it has a fixed number of queues. Linux's CFS keeps tasks in a red-black tree, so inserting or removing a task takes O(log n).",
+  "title": "What is the time complexity of scheduling algorithms?",
+  "source": "notes/algorithm_reference.md",
+  "page": "What is the time complexity of scheduling algorithms?",
   "algorithm": "Comparison"
  },
  {
@@ -1302,14 +1470,14 @@
   "algorithm": "Priority"
  },
  {
-  "text": "The convoy effect happens under FCFS when one long CPU-bound process holds the CPU and many short processes queue up behind it, like cars stuck behind a slow truck on a single-lane road. The short processes could have finished quickly, but they all wait for the long one. Meanwhile I/O devices sit idle because the I/O-bound processes are stuck in the ready queue. The result is a high average waiting time and lower CPU and device utilisation. Algorithms that let short jobs go first, such as SJF or Round Robin, avoid it.",
+  "text": "The convoy effect happens under FCFS when one long CPU-bound process holds the CPU and many short processes queue up behind it, like cars stuck behind a slow truck on a single-lane road. The short processes could have finished quickly, but they all wait for the long one. Meanwhile I/O devices sit idle because the I/O-bound processes are stuck in the ready queue. The result is a high average waiting time and lower CPU and device utilisation. Algorithms that pick the shortest job first, such as SJF, reduce it because short processes are not stuck behind a long one; Round Robin limits it by preempting a long process after one quantum, but it does not choose short jobs first.",
   "title": "What is the convoy effect?",
   "source": "notes/analogies_and_doubts.md",
   "page": "What is the convoy effect?",
   "algorithm": "FCFS"
  },
  {
-  "text": "Starvation, also called indefinite blocking, is when a ready process waits for the CPU indefinitely because the scheduler keeps choosing other processes. It happens in SJF and SRTF when short jobs keep arriving and a long job is always passed over, and in priority scheduling when higher-priority processes keep arriving and a low-priority process never gets its turn. FCFS and Round Robin do not cause starvation because every process eventually reaches the head of the queue. The standard remedy is aging.",
+  "text": "Starvation, also called indefinite blocking, is when a ready process waits for the CPU indefinitely because the scheduler keeps choosing other processes. It happens in SJF and SRTF when short jobs keep arriving and a long job is always passed over, and in priority scheduling when higher-priority processes keep arriving and a low-priority process never gets its turn. Under standard assumptions (every process that runs eventually finishes or blocks, and the ready queue is finite ahead of a waiting process), FCFS and Round Robin do not cause starvation because every process eventually reaches the head of the queue. Waiting a long time behind a long job in FCFS is the convoy effect, which is a delay and not starvation. The standard remedy is aging.",
   "title": "What is starvation in CPU scheduling?",
   "source": "notes/analogies_and_doubts.md",
   "page": "What is starvation in CPU scheduling?",
@@ -1428,11 +1596,11 @@
   "algorithm": "Round Robin"
  },
  {
-  "text": "For short processes both algorithms are kind, but in different ways. SJF picks the shortest job first, so short processes run almost immediately and the average waiting time is the minimum possible. Round Robin gives every process one quantum in turn, so a short process that fits in one quantum also finishes quickly, but it may have to wait for a full quantum of every process ahead of it. SJF wins on average waiting time; Round Robin wins on fairness, response time and freedom from starvation.",
+  "text": "SJF deliberately favours short processes: it picks the shortest burst first, so short processes run almost immediately and the average waiting time is the minimum possible, but long jobs can starve. Round Robin does not prioritise short processes: it gives every process one quantum in cyclic order. A short process that fits in one quantum finishes in its first turn, but it may have to wait a turn for each process ahead of it. SJF wins on average waiting time; Round Robin wins on fairness and response time, and under standard assumptions no process starves.",
   "title": "Compare SJF and Round Robin for short processes",
   "source": "notes/analogies_and_doubts.md",
   "page": "Compare SJF and Round Robin for short processes",
-  "algorithm": "SJF"
+  "algorithm": "Round Robin"
  },
  {
   "text": "FCFS is non-preemptive: each process runs to completion in arrival order, so it has very few context switches but suffers from the convoy effect and poor response time. Round Robin is FCFS plus a timer: each process runs for at most one quantum and then goes to the back of the queue. That gives good response time and fairness for interactive users at the cost of more context switches. If the quantum is larger than every burst, Round Robin behaves exactly like FCFS.",
@@ -1463,14 +1631,14 @@
   "algorithm": "Priority"
  },
  {
-  "text": "Round Robin is the algorithm designed for time-sharing systems. Every user's process gets the CPU for one quantum at regular intervals, so each user sees a responsive system and no one is starved. FCFS is a poor choice because one long job can hold everyone up, and SJF needs burst prediction and can starve long jobs. Real systems often use a multilevel feedback queue, which uses Round Robin within each level.",
+  "text": "Round Robin is the algorithm designed for time-sharing systems. Every user's process gets the CPU for one quantum at regular intervals, so each user sees a responsive system and, under standard assumptions, no ready process is starved. FCFS is a poor choice because one long job can hold everyone up, and SJF needs burst prediction and can starve long jobs. Real systems often use a multilevel feedback queue, which uses Round Robin within each level.",
   "title": "Which scheduling algorithm is best for time-sharing systems?",
   "source": "notes/analogies_and_doubts.md",
   "page": "Which scheduling algorithm is best for time-sharing systems?",
   "algorithm": "Round Robin"
  },
  {
-  "text": "FCFS cannot cause starvation, because every process eventually reaches the head of the FIFO queue. Round Robin cannot cause starvation either: every ready process gets the CPU within (n \u2212 1) \u00d7 q time units. SJF and SRTF can starve long jobs if short ones keep arriving. Priority scheduling can starve low-priority processes if higher-priority ones keep arriving. For the last two, aging is the standard fix.",
+  "text": "Standard FCFS does not cause starvation, because every process eventually reaches the head of the FIFO queue provided the processes ahead of it terminate. Standard Round Robin does not cause starvation either: with n ready processes and a finite quantum q, every ready process gets the CPU within (n \u2212 1) \u00d7 q time units. SJF and SRTF can starve long jobs if short ones keep arriving. Priority scheduling can starve low-priority processes if higher-priority ones keep arriving. For the last two, aging is the standard fix.",
   "title": "Compare the algorithms on starvation",
   "source": "notes/analogies_and_doubts.md",
   "page": "Compare the algorithms on starvation",
@@ -1603,6 +1771,76 @@
   "algorithm": "Comparison"
  },
  {
+  "text": "CPU Scheduling \u2014 Commonly Confused Concepts (convoy effect, starvation, aging, who favours short jobs). Standard assumptions used in this note: every process that gets the CPU eventually finishes or blocks for I/O, the number of processes ahead of a waiting process is finite, and Round Robin uses a finite time quantum.",
+  "title": "Introduction",
+  "source": "notes/concept_distinctions.md",
+  "page": "Introduction",
+  "algorithm": "Round Robin"
+ },
+ {
+  "text": "The convoy effect is a performance problem: a long CPU-bound process holds the CPU and many short processes wait behind it, so average waiting time rises and CPU and I/O-device utilisation fall. It is classically associated with FCFS, which is non-preemptive and serves processes in arrival order. Every waiting process still gets the CPU eventually, so the delay is long but finite. Starvation (indefinite blocking or indefinite postponement) is different: a ready process is passed over again and again and may never get the CPU. It can happen in SJF and SRTF when shorter jobs keep arriving ahead of a long job, and in Priority scheduling when higher-priority processes keep arriving ahead of a low-priority one. Under the standard assumptions, FCFS does not cause starvation and Round Robin does not either, because every ready process gets a turn within (n \u2212 1) \u00d7 q time units. Aging, which gradually raises the priority of a waiting process, is the usual remedy for starvation in priority-based scheduling. In short: the convoy effect is a long wait that ends, caused by a long job at the front; starvation is a wait that may never end, caused by the scheduler's selection rule.",
+  "title": "What is the difference between the convoy effect and starvation?",
+  "source": "notes/concept_distinctions.md",
+  "page": "What is the difference between the convoy effect and starvation?",
+  "algorithm": "Priority"
+ },
+ {
+  "text": "| | Convoy effect | Starvation | |---|---|---| | Meaning | Short processes wait behind one long CPU-bound process | A process is postponed indefinitely and may never get the CPU | | Nature of the problem | Poor performance: high average waiting time, low utilisation | Unfairness: a process makes no progress | | Does the wait end? | Yes, when the long process finishes or blocks | Not necessarily, if favoured processes keep arriving | | Classic algorithm | FCFS (any non-preemptive discipline with a long job at the front) | SJF and SRTF (long jobs), Priority scheduling (low-priority jobs) | | Cause | A long burst at the head of a non-preemptive queue | A selection rule that keeps favouring other processes | | Typical remedy | Preemption (Round Robin, SRTF) or running short jobs first | Aging, or a fair policy such as Round Robin |",
+  "title": "Convoy effect versus starvation: a comparison table",
+  "source": "notes/concept_distinctions.md",
+  "page": "Convoy effect versus starvation: a comparison table",
+  "algorithm": "Comparison"
+ },
+ {
+  "text": "Convoy effect example under FCFS: P1 needs 100 time units and arrives first, then P2 and P3 need 2 units each. P2 and P3 wait about 100 units, which is a long delay, but both run as soon as P1 finishes. Starvation example under SJF: a long job P1 is waiting while a stream of short jobs keeps arriving, and each time the scheduler picks the shortest job, so P1 can be passed over indefinitely. In Priority scheduling the same happens to a low-priority job while higher-priority jobs keep arriving.",
+  "title": "What is the difference between the convoy effect and starvation in an example?",
+  "source": "notes/concept_distinctions.md",
+  "page": "What is the difference between the convoy effect and starvation in an example?",
+  "algorithm": "Comparison"
+ },
+ {
+  "text": "Not in standard FCFS. Processes are served strictly in arrival order, so a waiting process has only finitely many processes ahead of it, and, assuming each of them eventually finishes or blocks, it reaches the head of the queue and gets the CPU. A process can wait a long time behind a long job, but that is the convoy effect: a long, finite delay, not indefinite postponement. Starvation would need an exceptional case, for example a process ahead that never terminates, which is outside the usual assumptions.",
+  "title": "Can starvation occur in FCFS?",
+  "source": "notes/concept_distinctions.md",
+  "page": "Can starvation occur in FCFS?",
+  "algorithm": "FCFS"
+ },
+ {
+  "text": "Yes. SJF always selects the ready process with the shortest CPU burst. If shorter jobs keep arriving while a long job is waiting, there is always a shorter job to pick, so the long job can be passed over again and again and may never get the CPU. This is starvation (indefinite blocking). SRTF makes it more likely, because a running long job can also be preempted by each shorter arrival. Whether starvation actually happens depends on the workload: if short jobs stop arriving, the long job eventually runs. Aging is the usual remedy.",
+  "title": "Can starvation occur in SJF?",
+  "source": "notes/concept_distinctions.md",
+  "page": "Can starvation occur in SJF?",
+  "algorithm": "SJF"
+ },
+ {
+  "text": "Priority scheduling always gives the CPU to the ready process with the highest priority. A low-priority process can be bypassed repeatedly if higher-priority processes keep arriving or stay ready, so it may wait indefinitely. This can happen in both preemptive and non-preemptive Priority scheduling, depending on the workload. The usual mitigation is aging: the priority of a process is raised gradually the longer it waits, so eventually even a low-priority process becomes the highest-priority one and gets the CPU.",
+  "title": "Why can starvation occur in Priority scheduling?",
+  "source": "notes/concept_distinctions.md",
+  "page": "Why can starvation occur in Priority scheduling?",
+  "algorithm": "Priority"
+ },
+ {
+  "text": "No. Round Robin does not choose processes by length. It serves the ready queue in cyclic order and gives each process at most one time quantum per turn, then moves it to the back of the queue. A short process whose burst fits within one quantum finishes in its first turn, and so finishes after fewer turns than a long process, but it is not selected first because it is short: it still waits its place in the queue. SJF, not Round Robin, is the algorithm that deliberately picks the shortest job first.",
+  "title": "Does Round Robin prioritize short processes?",
+  "source": "notes/concept_distinctions.md",
+  "page": "Does Round Robin prioritize short processes?",
+  "algorithm": "Round Robin"
+ },
+ {
+  "text": "Under standard assumptions Round Robin avoids starvation, because every ready process receives a finite quantum in cyclic order and so gets the CPU within (n \u2212 1) \u00d7 q time units; it does this by rotating fairly, not by favouring short jobs. SJF does not prevent starvation; it can starve long jobs when shorter jobs keep arriving. SJF does reduce the convoy effect, because short jobs are not stuck behind long ones.",
+  "title": "Does Round Robin or SJF prevent starvation?",
+  "source": "notes/concept_distinctions.md",
+  "page": "Does Round Robin or SJF prevent starvation?",
+  "algorithm": "SJF"
+ },
+ {
+  "text": "SJF and SRTF can starve long jobs if shorter jobs keep arriving. Priority scheduling, preemptive or non-preemptive, can starve low-priority processes if higher-priority ones keep arriving; aging mitigates this. Under standard assumptions FCFS and Round Robin do not starve a process: FCFS because each process eventually reaches the head of the queue, Round Robin because each ready process gets a turn within (n \u2212 1) \u00d7 q time units. FCFS can still show the convoy effect, which is a long delay and not starvation.",
+  "title": "Which scheduling algorithms can suffer starvation and which cannot?",
+  "source": "notes/concept_distinctions.md",
+  "page": "Which scheduling algorithms can suffer starvation and which cannot?",
+  "algorithm": "Comparison"
+ },
+ {
   "text": "CPU Scheduling \u2014 Course Notes (Unit: CPU Scheduling). Compiled for the OS CPU Scheduling Tutor. Conventions follow the prescribed textbook (Silberschatz, Galvin and Gagne, Operating System Concepts): a lower priority number means a higher priority, and ties are broken by arrival time and then by process number. Basic concepts. CPU scheduling is the job of the short-term scheduler: whenever the CPU becomes idle it selects one process from the ready queue and the dispatcher gives that process control of the CPU. Process execution alternates between CPU bursts and I/O bursts, which is why scheduling is needed at all. Scheduling decisions happen when a process switches from running to waiting, from running to ready (an interrupt or a timer expiry), from waiting to ready, or when it terminates. If scheduling only happens on the first and last of these, the scheme is non-preemptive (cooperative); otherwise it is preemptive. Dispatcher and dispatch latency. The dispatcher switches context, switches to user mode and jumps to the right location in the user program. The time the dispatcher takes to stop one process and start another is the dispatch latency. Every context switch is pure overhead: no useful user work is done while registers and the process control block are being saved and restored.",
   "title": "Introduction",
   "source": "notes/cpu_scheduling_notes.md",
@@ -1663,6 +1901,76 @@
   "title": "Comparison summary",
   "source": "notes/cpu_scheduling_notes.md",
   "page": "Comparison summary",
+  "algorithm": "Comparison"
+ },
+ {
+  "text": "CPU Scheduling \u2014 Fundamentals, Queues and Complexity. Conventions used throughout this course and in the simulator: a lower priority number means a higher priority; turnaround time = completion time \u2212 arrival time; waiting time = turnaround time \u2212 burst time; response time = first time on the CPU \u2212 arrival time; a context switch is assumed to take zero time unless a question says otherwise.",
+  "title": "Introduction",
+  "source": "notes/fundamentals_and_complexity.md",
+  "page": "Introduction",
+  "algorithm": "Priority"
+ },
+ {
+  "text": "A process is a program in execution: the program's code together with its current activity, which includes the program counter, the registers, the stack and the data. A program is a passive file on disk; a process is the active entity that the operating system creates, schedules and eventually terminates. The operating system keeps each process's information in a process control block (PCB). In a CPU scheduling problem a process is described by an arrival time, a CPU burst time and, for priority scheduling, a priority.",
+  "title": "What is a process?",
+  "source": "notes/fundamentals_and_complexity.md",
+  "page": "What is a process?",
+  "algorithm": "Priority"
+ },
+ {
+  "text": "A process moves between five states. New: the process is being created. Ready: it is in memory and waiting only for the CPU. Running: its instructions are being executed on the CPU. Waiting (also called blocked): it is waiting for an event such as I/O completion. Terminated: it has finished execution. The transitions are: new to ready when the process is admitted; ready to running when the dispatcher gives it the CPU; running to ready when it is preempted (a timer interrupt or a higher-priority arrival); running to waiting when it requests I/O or waits for an event; waiting to ready when the I/O or event completes; running to terminated when it exits. CPU scheduling decides which ready process moves to running.",
+  "title": "What are the states of a process?",
+  "source": "notes/fundamentals_and_complexity.md",
+  "page": "What are the states of a process?",
+  "algorithm": "Priority"
+ },
+ {
+  "text": "The ready queue holds the processes that are in memory, ready to run and waiting only for the CPU; the CPU scheduler selects the next process from it. A waiting queue (also called a device queue or I/O queue, usually one per device) holds the processes that are blocked waiting for an I/O device or an event. A process leaves the ready queue when it is dispatched. If it then requests I/O it joins a waiting queue, and when the I/O completes it moves back to the ready queue. Only processes in the ready queue compete for the CPU.",
+  "title": "What are ready queues and waiting queues?",
+  "source": "notes/fundamentals_and_complexity.md",
+  "page": "What are ready queues and waiting queues?",
+  "algorithm": "General"
+ },
+ {
+  "text": "The cost of a simulation depends on how it is implemented, and is different from the cost of the scheduling algorithm itself. For n processes, sorting by arrival time costs O(n log n). After that, a FCFS simulation needs a single pass over the sorted processes, so the whole simulation is O(n log n), dominated by the sort, and O(n) if the input is already sorted. Non-preemptive SJF and Priority simulations that scan all ready processes at every decision cost O(n2); using a min-heap for the ready queue reduces this to O(n log n). A preemptive simulation that advances one time unit at a time costs O(T \u00d7 n) for a total running time T if it scans the ready processes at every step, or O(n log n) if it is event-driven with a heap and only decides at arrivals and completions. A Round Robin simulation does constant work per time slice, so it costs O(number of slices), which is about the sum of ceil(burst / quantum) over all processes.",
+  "title": "What is the time complexity of simulating a scheduling algorithm?",
+  "source": "notes/fundamentals_and_complexity.md",
+  "page": "What is the time complexity of simulating a scheduling algorithm?",
+  "algorithm": "Round Robin"
+ },
+ {
+  "text": "The cost of choosing the next process is a property of the data structure the scheduler uses. FCFS and Round Robin use a FIFO queue, so enqueue and dequeue take O(1). SJF, SRTF and Priority scheduling need the minimum burst, remaining time or priority number, which takes O(n) with an unsorted list or a linear scan, and O(log n) per decision with a min-heap (priority queue). The theoretical comparison of algorithms by waiting time is separate from this implementation cost.",
+  "title": "What is the time complexity of the scheduling decision itself?",
+  "source": "notes/fundamentals_and_complexity.md",
+  "page": "What is the time complexity of the scheduling decision itself?",
+  "algorithm": "Comparison"
+ },
+ {
+  "text": "The ready queue holds at most one entry (a PCB reference) per process, so its space is O(n) for n processes, whether it is a FIFO queue, a sorted list or a heap. A simulation also stores the Gantt chart, which has one entry per execution segment: at most n for a non-preemptive algorithm, and more for preemptive algorithms and Round Robin.",
+  "title": "What is the space complexity of the ready queue?",
+  "source": "notes/fundamentals_and_complexity.md",
+  "page": "What is the space complexity of the ready queue?",
+  "algorithm": "Round Robin"
+ },
+ {
+  "text": "SJF gives the minimum average waiting time only if the scheduler knows the length of each process's next CPU burst, and the operating system does not know it in advance. The burst can only be estimated from the past, commonly by exponential averaging: the prediction for the next burst is tau(n+1) = alpha \u00d7 t(n) + (1 \u2212 alpha) \u00d7 tau(n), where t(n) is the length of the last actual burst, tau(n) is the previous prediction and alpha is between 0 and 1. A wrong prediction removes the optimality guarantee. SJF can also starve long jobs. For these reasons SJF is mostly used as a benchmark or in batch settings where run times are known, and real schedulers use approximations such as the multilevel feedback queue.",
+  "title": "Why is SJF not practical in real systems even though it is optimal?",
+  "source": "notes/fundamentals_and_complexity.md",
+  "page": "Why is SJF not practical in real systems even though it is optimal?",
+  "algorithm": "SJF"
+ },
+ {
+  "text": "Context-switch overhead is the time the system spends saving one process's state and loading another's, during which no user process makes progress. Scheduling overhead is the larger cost of running the scheduler itself: examining the ready queue, updating data structures such as a heap, and calling the dispatcher. Both grow when an algorithm preempts often; Round Robin with a very small quantum has high context-switch overhead, while FCFS has the lowest. Textbook numerical problems usually ignore both and treat a context switch as taking zero time.",
+  "title": "What is the difference between scheduling overhead and context-switch overhead?",
+  "source": "notes/fundamentals_and_complexity.md",
+  "page": "What is the difference between scheduling overhead and context-switch overhead?",
+  "algorithm": "Comparison"
+ },
+ {
+  "text": "Textbook results such as \"SJF minimises the average waiting time\" assume a single CPU, burst times known exactly, a fixed set of processes and zero context-switch cost. A real system has unknown and changing bursts, I/O, many processes arriving unpredictably, context-switch and cache costs, and goals beyond average waiting time such as response time and fairness. As a result the algorithm that is best in theory on one metric is often not the one used in practice; real operating systems combine ideas, for example a priority-based multilevel feedback queue with Round Robin inside each level.",
+  "title": "What is the difference between theoretical and practical scheduling performance?",
+  "source": "notes/fundamentals_and_complexity.md",
+  "page": "What is the difference between theoretical and practical scheduling performance?",
   "algorithm": "Comparison"
  },
  {

@@ -44,6 +44,7 @@ RICH = [
     dict(
         title="Compare FCFS, SJF, SRTF, Priority and Round Robin in a table",
         aliases=["compare fcfs sjf priority and round robin", "compare all scheduling algorithms",
+                 "compare all cpu scheduling algorithms", "compare the cpu scheduling algorithms",
                  "comparison of scheduling algorithms", "compare fcfs sjf srtf priority round robin",
                  "scheduling algorithms comparison table", "differences between fcfs sjf priority rr"],
         summary=("The algorithms differ in how they pick the next process, whether they preempt, whether they can "

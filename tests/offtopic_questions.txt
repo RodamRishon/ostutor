@@ -1,0 +1,14 @@
+what is the capital of france
+write a python program to reverse a string
+explain deadlock prevention
+how does paging work
+tell me a joke
+who is the prime minister of india
+what is virtual memory
+explain semaphores and mutexes
+how do i make pasta
+what is the best programming language
+what is a binary search tree
+explain tcp three way handshake
+What is a process in python multiprocessing?
+How does a B-tree index work in a database?

@@ -1,0 +1,151 @@
+# ---- best / efficient / choose
+which CPU Scheduling algorithm is the most efficient one? And why so??
+which scheduling algorithm is the best?
+what is the best cpu scheduling algorithm and why
+which algorithm is the fastest
+which scheduling algorithm is optimal
+which algorithm should i use for an interactive system
+which scheduling algorithm is used in real operating systems
+which algorithm gives the least turnaround time
+which scheduling algorithm is better, FCFS or SJF?
+is round robin better than fcfs
+which algorithm gives the highest throughput
+which scheduling algorithm is the most fair
+which algorithm is the simplest to implement
+which algorithm gives the highest cpu utilization
+which cpu scheduling algorithm is the worst
+why is sjf considered the most efficient
+why isn't sjf used in practice
+what is the most efficient scheduling algorithm for batch systems
+which scheduling algorithm would you recommend and why
+which algorithm has the lowest overhead
+which algorithm is most suitable for time sharing systems
+which scheduling algorithm is preferred for real time systems
+which one is more efficient, round robin or priority scheduling
+how do i choose the right scheduling algorithm
+# ---- definitions
+what is cpu scheduling
+why is cpu scheduling needed
+what is the purpose of cpu scheduling
+what is a scheduler
+what is the dispatcher and what does it do
+what is dispatch latency
+what is a time quantum
+what is context switching
+what is multiprogramming
+what is burst time
+what is arrival time
+what is completion time
+what is turnaround time
+what is response time
+what is waiting time
+what is throughput
+what is the ready queue
+what is preemption
+what is aging in scheduling
+what is cpu utilization
+what is a cpu burst and an io burst
+what is a cpu bound process
+what is an io bound process
+what is the degree of multiprogramming
+# ---- how / why
+how does round robin scheduling work
+how does srtf work
+how does priority scheduling prevent starvation
+how to choose the time quantum
+why does sjf cause starvation
+why is round robin fair
+how does multilevel feedback queue scheduling work
+how does linux schedule processes
+what is cfs in linux
+which scheduler does windows use
+how is multilevel queue different from multilevel feedback queue
+how can the next cpu burst be predicted
+what is exponential averaging
+why is fcfs not suitable for time sharing systems
+why does the convoy effect happen
+how does aging solve starvation
+how does preemptive priority scheduling work
+why does round robin have higher turnaround time
+how is the gantt chart drawn
+# ---- comparisons
+difference between preemptive and non preemptive scheduling
+compare fcfs and sjf
+fcfs vs round robin
+sjf vs srtf
+pros and cons of round robin
+advantages of priority scheduling
+disadvantages of fcfs
+compare all cpu scheduling algorithms
+difference between long term and short term scheduler
+difference between multilevel queue and multilevel feedback queue
+priority scheduling vs sjf
+difference between waiting time and turnaround time
+difference between process scheduling and thread scheduling
+# ---- exam style
+list the cpu scheduling criteria
+write the steps of the sjf algorithm
+give an example of the convoy effect
+what happens if the time quantum is too large
+what happens if the time quantum is too small
+can round robin behave like fcfs
+is sjf preemptive or non preemptive
+what is the time complexity of sjf
+what is the formula for average waiting time
+explain priority inversion
+what is real time scheduling
+what is earliest deadline first
+what is rate monotonic scheduling
+what is multiprocessor scheduling
+what is load balancing in multiprocessor scheduling
+what is processor affinity
+what is gang scheduling
+what is lottery scheduling
+what is highest response ratio next
+what is the formula for response ratio
+explain round robin with an example
+short note on sjf
+write a short note on cpu scheduling algorithms
+what are the scheduling criteria and which should be maximized
+what are the types of cpu scheduling
+name the preemptive scheduling algorithms
+name the non preemptive scheduling algorithms
+which algorithms can lead to starvation
+which algorithm suffers from the convoy effect
+which scheduling algorithm is starvation free
+what is the maximum waiting time in round robin
+how many context switches does round robin cause
+is fcfs preemptive
+does round robin cause starvation
+is sjf optimal
+is srtf optimal
+can sjf be implemented
+# ---- casual / conversational
+explain cpu scheduling like i'm 5
+i don't understand round robin
+tell me about scheduling algorithms
+give me a summary of cpu scheduling
+cpu scheduling notes for exam
+what should i remember about cpu scheduling for the exam
+cpu scheduling algorithms list
+all cpu scheduling algorithms with advantages and disadvantages
+explain all cpu scheduling algorithms
+what are scheduling algorithms used for
+who invented round robin scheduling
+real life example of round robin
+real life analogy for sjf
+which cpu scheduling algorithm is used in windows and linux
+why do operating systems need a scheduler
+what factors affect the choice of scheduling algorithm
+can you explain starvation and aging
+what is the difference between fcfs and fifo
+what is non preemptive priority scheduling
+what is the best time quantum for round robin
+what is the disadvantage of sjf scheduling
+what happens when two processes have the same priority
+what happens when two processes arrive at the same time
+Why is SJF optimal for average waiting time, and why can't real systems use it?
+What is a time quantum? Why does a small quantum increase overhead?
+Which algorithm is the best, and why does it have a downside?
+Explain FCFS and also tell me what the convoy effect is
+How do I choose the right scheduling algorithm?

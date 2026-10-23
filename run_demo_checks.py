@@ -182,8 +182,27 @@ def _():
         assert out.get("title") == "What are the different types of CPU scheduling algorithms?", (q, out.get("title"))
         assert all(a in body for a in ("FCFS", "SJF", "SRTF", "Priority", "Round Robin")), q
     # ...and the neighbouring question about schedulers still gets its own answer
-    assert "schedulers" in Tutor(use_llm=False).answer("types of schedulers in os")["title"].lower()
+    assert "scheduler" in Tutor(use_llm=False).answer("types of schedulers in os")["title"].lower()   # the long/medium/short-term answer
     return "4 phrasings -> algorithm list; 'types of schedulers' unaffected"
+
+
+@check("typos are tolerated: misspelled questions get the same answer as the correct spelling")
+def _():
+    from tutor import Tutor
+    t = Tutor(use_llm=False)
+    pairs = [("What are the different kinds of CPU SCHEDULING aLGORTIHMS??", "What are the different kinds of CPU scheduling algorithms?"),
+             ("what is round robbin scheduling", "what is round robin scheduling"),
+             ("what is the convoy efect", "what is the convoy effect"),
+             ("types of cpu schedulling algorithms", "types of cpu scheduling algorithms"),
+             ("what is starvaton in priority scheduling", "what is starvation in priority scheduling")]
+    for bad, good in pairs:
+        a, b = t.answer(bad), t.answer(good)
+        assert a["in_scope"] and a.get("title") == b.get("title"), (bad, a.get("title"), b.get("title"))
+        assert any("spelling" in n for n in a["notes"]), bad          # the student is told what was corrected
+    # correct questions are left alone, and off-topic ones are still refused
+    assert not any("spelling" in n for n in t.answer("what is the convoy effect")["notes"])
+    assert not t.answer("How do I make pasta?")["in_scope"]
+    return f"{len(pairs)} misspelled questions answered like their correct spelling"
 
 
 @check("retrieval threshold: off-topic question is refused")
@@ -224,7 +243,8 @@ def _():
 @check("tutor answers a concept question with cited sources")
 def _():
     a = tutor.answer("A student says Round Robin causes starvation. Is this correct?")
-    assert a["in_scope"] and a["hits"] and "starvation" in a["text"].lower()
+    # without the language model a verdict question is not guessed: it lists the passages and says so (retrieval only)
+    assert a["in_scope"] and a["hits"] and ("starvation" in a["text"].lower() or a["mode"].startswith("retrieval only"))
     return cite(a["hits"][0])
 
 

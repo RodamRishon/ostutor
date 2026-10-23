@@ -21,11 +21,11 @@ In priority scheduling every process carries a priority number and the CPU alway
 
 ### What is the convoy effect?
 
-The convoy effect happens under FCFS when one long CPU-bound process holds the CPU and many short processes queue up behind it, like cars stuck behind a slow truck on a single-lane road. The short processes could have finished quickly, but they all wait for the long one. Meanwhile I/O devices sit idle because the I/O-bound processes are stuck in the ready queue. The result is a high average waiting time and lower CPU and device utilisation. Algorithms that let short jobs go first, such as SJF or Round Robin, avoid it. (Source: course notes, FCFS.)
+The convoy effect happens under FCFS when one long CPU-bound process holds the CPU and many short processes queue up behind it, like cars stuck behind a slow truck on a single-lane road. The short processes could have finished quickly, but they all wait for the long one. Meanwhile I/O devices sit idle because the I/O-bound processes are stuck in the ready queue. The result is a high average waiting time and lower CPU and device utilisation. Algorithms that pick the shortest job first, such as SJF, reduce it because short processes are not stuck behind a long one; Round Robin limits it by preempting a long process after one quantum, but it does not choose short jobs first. (Source: course notes, FCFS.)
 
 ### What is starvation in CPU scheduling?
 
-Starvation, also called indefinite blocking, is when a ready process waits for the CPU indefinitely because the scheduler keeps choosing other processes. It happens in SJF and SRTF when short jobs keep arriving and a long job is always passed over, and in priority scheduling when higher-priority processes keep arriving and a low-priority process never gets its turn. FCFS and Round Robin do not cause starvation because every process eventually reaches the head of the queue. The standard remedy is aging. (Source: course notes, Priority Scheduling.)
+Starvation, also called indefinite blocking, is when a ready process waits for the CPU indefinitely because the scheduler keeps choosing other processes. It happens in SJF and SRTF when short jobs keep arriving and a long job is always passed over, and in priority scheduling when higher-priority processes keep arriving and a low-priority process never gets its turn. Under standard assumptions (every process that runs eventually finishes or blocks, and the ready queue is finite ahead of a waiting process), FCFS and Round Robin do not cause starvation because every process eventually reaches the head of the queue. Waiting a long time behind a long job in FCFS is the convoy effect, which is a delay and not starvation. The standard remedy is aging. (Source: course notes, Priority Scheduling.)
 
 ### What is aging and why is it needed?
 
@@ -95,7 +95,7 @@ Step 1: list every process with its arrival time, burst time and, if needed, pri
 
 ### Compare SJF and Round Robin for short processes
 
-For short processes both algorithms are kind, but in different ways. SJF picks the shortest job first, so short processes run almost immediately and the average waiting time is the minimum possible. Round Robin gives every process one quantum in turn, so a short process that fits in one quantum also finishes quickly, but it may have to wait for a full quantum of every process ahead of it. SJF wins on average waiting time; Round Robin wins on fairness, response time and freedom from starvation. (Source: course notes, Comparison summary.)
+SJF deliberately favours short processes: it picks the shortest burst first, so short processes run almost immediately and the average waiting time is the minimum possible, but long jobs can starve. Round Robin does not prioritise short processes: it gives every process one quantum in cyclic order. A short process that fits in one quantum finishes in its first turn, but it may have to wait a turn for each process ahead of it. SJF wins on average waiting time; Round Robin wins on fairness and response time, and under standard assumptions no process starves. (Source: course notes, Comparison summary.)
 
 ### Compare FCFS and Round Robin
 
@@ -115,11 +115,11 @@ Both always run the highest-priority ready process. The difference is what happe
 
 ### Which scheduling algorithm is best for time-sharing systems?
 
-Round Robin is the algorithm designed for time-sharing systems. Every user's process gets the CPU for one quantum at regular intervals, so each user sees a responsive system and no one is starved. FCFS is a poor choice because one long job can hold everyone up, and SJF needs burst prediction and can starve long jobs. Real systems often use a multilevel feedback queue, which uses Round Robin within each level. (Source: course notes, Round Robin.)
+Round Robin is the algorithm designed for time-sharing systems. Every user's process gets the CPU for one quantum at regular intervals, so each user sees a responsive system and, under standard assumptions, no ready process is starved. FCFS is a poor choice because one long job can hold everyone up, and SJF needs burst prediction and can starve long jobs. Real systems often use a multilevel feedback queue, which uses Round Robin within each level. (Source: course notes, Round Robin.)
 
 ### Compare the algorithms on starvation
 
-FCFS cannot cause starvation, because every process eventually reaches the head of the FIFO queue. Round Robin cannot cause starvation either: every ready process gets the CPU within (n − 1) × q time units. SJF and SRTF can starve long jobs if short ones keep arriving. Priority scheduling can starve low-priority processes if higher-priority ones keep arriving. For the last two, aging is the standard fix. (Source: course notes, Comparison summary.)
+Standard FCFS does not cause starvation, because every process eventually reaches the head of the FIFO queue provided the processes ahead of it terminate. Standard Round Robin does not cause starvation either: with n ready processes and a finite quantum q, every ready process gets the CPU within (n − 1) × q time units. SJF and SRTF can starve long jobs if short ones keep arriving. Priority scheduling can starve low-priority processes if higher-priority ones keep arriving. For the last two, aging is the standard fix. (Source: course notes, Comparison summary.)
 
 ### Compare the algorithms on context-switch overhead
 
