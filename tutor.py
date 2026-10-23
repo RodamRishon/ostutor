@@ -506,6 +506,9 @@ MAX_CONCEPT_PASSAGES = 5     # passages sent to the model for a multi-concept qu
 IDENTIFY_POOL = 12         # passages searched for evidence; only the ones actually used are shown
 
 
+_MAIN_ALGO_END = re.compile(r"(?:\bfcfs|\bsjf|\bsrtf|round[- ]robin|\bpriority)\??\s*$", re.I)   # "... overhead of SJF?"
+
+
 def algorithms_in(text):
     """[(position, key)] for every algorithm the text names, in reading order."""
     found = [(m.start(), key) for key, pat, _ in ALGO_NAMES if (m := re.search(pat, text, re.I))]
@@ -639,8 +642,12 @@ def template_numerical(result, notes):
 # ---- multi-part questions: "Why is SJF optimal, and why can't real systems use it?" -----------------------------------
 _WH = r"(?:why|how|when|what|which|where|who|can|could|does|do|is|are|should|would|will)"
 _JOIN = re.compile(r"\s*(?:\?+\s+|;\s+|,?\s+and\s+(?:also\s+|then\s+)?(?=" + _WH + r"\b)|,?\s+(?:also|plus)\s+(?=" + _WH + r"\b))", re.I)
+_POSSESSIVE = re.compile(r"\b(?:its|their)\b", re.I)
 _PRONOUN = re.compile(r"\b(?:it|they|them|this algorithm|that algorithm|this one|that one)\b", re.I)
 MAX_PARTS = 3
+# "What is context switching? Why does it ..." -> the concept the first part asks about is what "it" means
+_ASKED_ABOUT = re.compile(r"^\W*(?:what\s+(?:is|are|was|does)|what's|explain|define|describe|tell\s+me\s+about)\s+"
+                          r"(?:the\s+|a\s+|an\s+)?(.+?)(?:\s+mean|\s+work)?\W*$", re.I)
 
 
 def split_parts(question, in_domain=None):
@@ -658,7 +665,7 @@ def split_parts(question, in_domain=None):
     if not 2 <= len(pieces) <= MAX_PARTS:
         return [q]
     opener = re.compile(r"^\W*(?:" + _WH + r"|explain|describe|compare|define|give|tell|list|state)\b", re.I)
-    if any(len(x.split()) < 3 for x in pieces) or not all(opener.match(x) for x in pieces[1:]):
+    if len(pieces[0].split()) < 2 or any(len(x.split()) < 3 for x in pieces[1:]) or not all(opener.match(x) for x in pieces[1:]):
         return [q]
     named = []
     for key, pat, _ in ALGO_NAMES:
@@ -667,17 +674,19 @@ def split_parts(question, in_domain=None):
             named.append((m.start(), m.group(0)))
     names = [t for _, t in sorted(named)]
     parts = [pieces[0]]
+    concept = _ASKED_ABOUT.match(pieces[0])
+    concept = concept.group(1) if concept and len(concept.group(1).split()) <= 5 else None
+    algos = " and ".join(dict.fromkeys(names)) if names else None
+    subject = concept or algos          # "What is priority inversion? How is it solved?": 'it' is the concept, not 'priority'
     for x in pieces[1:]:
-        if not algorithms_in(x):
-            if not names:
-                if _PRONOUN.search(x):
-                    return [q]                                # "how can it be fixed" with nothing for "it" to mean
-            else:
-                subject = " and ".join(dict.fromkeys(names))
-                if _PRONOUN.search(x):
-                    x = _PRONOUN.sub(subject, x, count=1)
-                elif in_domain is None or len(x.split()) <= 4 or in_domain(x):
-                    x = f"{x} ({subject})"
+        if _PRONOUN.search(x) or _POSSESSIVE.search(x):
+            if subject:
+                x = _POSSESSIVE.sub(subject + "'s", x, count=1)
+                x = _PRONOUN.sub(subject, x, count=1)
+            elif not algorithms_in(x):
+                return [q]                                    # "how can it be fixed" with nothing for "it" to mean
+        elif algos and not algorithms_in(x) and (in_domain is None or len(x.split()) <= 4 or in_domain(x)):
+            x = f"{x} ({algos})"
         parts.append(x)
     wh = re.compile(r"^\W*" + _WH + r"\b", re.I)
     return [x + "?" if wh.match(x) and not x.endswith("?") else x for x in parts]
@@ -895,11 +904,21 @@ class Tutor:
             o["status"] = self._status(part, o)
             subs.append((part, o))
         answered = [(q, o) for q, o in subs if o.get("in_scope", True) and o["kind"] == "concept" and o.get("text")]
+        seen, unique = set(), []
+        for q, o in answered:                                 # "What is a CPU burst? What is an I/O burst?" -> one passage
+            key = o["text"][:200]
+            if key not in seen:
+                seen.add(key)
+                unique.append((q, o))
+        dropped = [o for _, o in answered if not any(o is u for _, u in unique)]
+        answered = unique
         if not answered:
             return self._answer(question)                     # nothing in scope: the ordinary refusal is the honest answer
+        skipped = [q for q, o in subs if not any(o is a for _, a in answered) and not any(o is d for d in dropped)]
         if len(answered) == 1:
             q, o = answered[0]
-            o["notes"] = o["notes"] + ["Your question had more than one part; the course material only answers: " + q]
+            if skipped:                                       # (parts that merely share this answer need no note)
+                o["notes"] = o["notes"] + ["Your question had more than one part; the course material only answers: " + q]
             return o
         hits, blocks, notes, offset = [], [], [], 0
         for i, (q, o) in enumerate(answered, 1):
@@ -909,7 +928,6 @@ class Tutor:
             hits += o.get("hits", [])
             offset = len(hits)
             notes += [n for n in o.get("notes", []) if n not in notes]
-        skipped = [q for q, o in subs if not any(o is a for _, a in answered)]
         if skipped:
             notes.append("I could not answer from the course material: " + "; ".join(skipped))
         text = "\n\n---\n\n".join(blocks)
@@ -1053,6 +1071,15 @@ class Tutor:
         # concept question
         intent = detect_intent(question)[0]
         hits = self.retriever.search(question, algorithm=r.topic)
+        if not r.topic and not algorithms_in(question) and intent not in ("identify", "compare", "recommend"):
+            # a general question ("why does context switching introduce overhead?") must not be answered by the
+            # per-algorithm passage ("... of SJF") that merely shares its words: demote those, searching deeper first
+            # because the general passage can sit below five per-algorithm ones
+            pool = self.retriever.search(question, k=20, algorithm=r.topic)
+            for h in pool:
+                if _MAIN_ALGO_END.search(h.get("title") or "") and h.get("title_match", 0) < 0.999:
+                    h["score"] -= 0.35
+            hits = sorted(pool, key=lambda h: -h["score"])[:len(hits) or TOP_K_SHOWN]
         if intent == "identify" and any(is_qa_title(h.get("title")) and h.get("title_match", 0) >= 0.999 for h in hits):
             intent = "answer"      # the question IS a stored question: its vetted answer beats matching rule sentences,
                                    # which cannot tell "X causes starvation" from "X does not cause starvation"

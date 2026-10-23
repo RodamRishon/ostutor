@@ -53,3 +53,28 @@ def test_off_topic_second_part_is_not_smuggled_in(tutor):
 
 def test_all_off_topic_is_still_refused(tutor):
     assert tutor.answer("How does a B-tree work, and why is it balanced?")["in_scope"] is False
+
+
+@pytest.mark.parametrize("q,parts", [
+    ("What is context switching? Why does it introduce overhead?", ["What is context switching?", "Why does context switching introduce overhead?"]),
+    ("What is priority inversion? How is it solved?", ["What is priority inversion?", "How is priority inversion solved?"]),
+    ("What is non-preemptive scheduling? What are its drawbacks?", ["What is non-preemptive scheduling?", "What are non-preemptive scheduling's drawbacks?"]),
+    ("Explain aging and why is it needed?", ["Explain aging?", "why is aging needed?"]),
+])
+def test_it_and_its_refer_to_the_concept_just_asked_about(q, parts):
+    got = split_parts(q)
+    assert [g.lower().rstrip("?") for g in got] == [x.lower().rstrip("?") for x in parts]
+
+
+def test_context_switching_question_gets_the_right_second_part(tutor):
+    out = tutor.answer("What is context switching? Why does it introduce overhead?")
+    text = out["text"].lower()
+    assert out["kind"] == "multi"
+    assert "program counter" in text or "pcb" in text          # part 1: what it is
+    assert "cache" in text and "tlb" in text                    # part 2: why it costs
+    assert "overhead of sjf" not in text                        # the per-algorithm passage must not stand in for it
+
+
+def test_same_answer_is_not_shown_twice(tutor):
+    out = tutor.answer("What is turnaround time? How is it different from waiting time?")
+    assert out["text"].lower().count("difference between turnaround time and waiting time") <= 1

@@ -93,6 +93,7 @@ _FRAME = {t for w in ("what is are the of a an how does do why which explain des
 _SCHED_ALGO = r"(?:(?:cpu|process)\s+)?scheduling\s+(?:algorithms?|algos?|policies)|cpu\s+(?:algorithms?|algos?)"
 _SCHED_ALGO_PL = r"(?:(?:cpu|process)\s+)?scheduling\s+(?:algorithms|algos|policies)|cpu\s+(?:algorithms|algos)"
 CANON = [
+    (r"\b(?:introduces?|incurs?)\b", " cause "),            # "why does X introduce overhead" = "why does X cause overhead"
     (r"compare\s+(?:all|every)\s+(?:the\s+)?(?:" + _SCHED_ALGO_PL + r")\b", " compareall "),
     (r"\b(?:(?:different|various|diff|main|major|basic|common|all|the)\s+)*"
      r"(?:types?|kinds?|categories|classes|classification)\s+of\s+(?:" + _SCHED_ALGO + r"|(?:cpu|process)\s+scheduling)\b",
@@ -450,6 +451,10 @@ class Retriever:
         asked = {t for t in canon_tokens(query) if t not in QUESTION_WORDS}
         if self.other_topic(query):
             return False
+        top = hits[0]
+        if (top.get("score", 0) >= 1.0 and top.get("title_match", 0) >= 0.4 and top.get("title")
+                and not self.in_domain(query)):
+            return True       # a stored Q&A whose own question is this question ("Why is swapping used?"): in the notes
         if not self.in_domain(query) and not self.in_core_domain(query):
             return False
         if not asked:                                   # "what is CPU scheduling?": nothing but framing words

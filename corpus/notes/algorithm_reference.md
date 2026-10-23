@@ -436,6 +436,86 @@ Each SJF scheduling decision takes O(n) if the scheduler scans the ready queue f
 
 The cost is per scheduling decision. FCFS and Round Robin take O(1), because the scheduler only removes the process at the head of a FIFO queue. SJF, SRTF and Priority scheduling take O(n) if they scan the ready queue, or O(log n) with a heap keyed on burst time or priority. A multilevel feedback queue takes O(1) when it has a fixed number of queues. Linux's CFS keeps tasks in a red-black tree, so inserting or removing a task takes O(log n).
 
+### Why does a context switch cause overhead?
+
+A context switch is pure overhead because the CPU does no useful work for any user process while it happens. The kernel must save the registers and program counter of the running process into its PCB, pick the next process, load that process's registers and memory-management information (page tables), and resume it. There is also a hidden cost afterwards: the new process finds the CPU caches and the TLB filled with the old process's data, so it suffers extra cache and TLB misses until they warm up. The direct cost of a switch is typically a few microseconds, but the more often the scheduler switches (a very small time quantum, or many preemptions), the larger the share of CPU time wasted. This is why Round Robin with a tiny quantum has high overhead and non-preemptive FCFS has the lowest.
+
+### Why is a context switch expensive?
+
+A context switch is expensive because the CPU saves the state of one process into its PCB and loads the state of another without doing any useful user work, and because the new process then runs with cold CPU caches and a flushed or stale TLB. Frequent switching therefore lowers CPU utilisation and throughput, so schedulers try to keep the number of context switches low.
+
+### What is dispatch latency, and why should it be small?
+
+Dispatch latency is the time the dispatcher takes to stop one process and start another: switching context, switching to user mode and jumping to the right place in the program. The dispatcher runs on every process switch and no user work is done meanwhile, so it should be as fast as possible. If the dispatch latency is large compared with the time quantum or the CPU bursts, a large part of the CPU time is wasted; in real-time systems a small dispatch latency also decides how quickly an urgent task can start running.
+
+### What is the difference between the scheduler and the dispatcher?
+
+The scheduler decides which process in the ready queue should get the CPU next; it implements the scheduling policy (FCFS, SJF, Round Robin, Priority). The dispatcher then carries out that decision: it performs the context switch, switches the CPU to user mode, and jumps to the proper location in the chosen process so that it resumes. In short, the scheduler chooses (policy) and the dispatcher switches (mechanism); the time the dispatcher needs is the dispatch latency.
+
+### What is a process control block (PCB) and why is it needed for a context switch?
+
+The process control block is the data structure the operating system keeps for every process. It stores the process state, the program counter, the CPU registers, scheduling information (priority, pointers to scheduling queues), memory-management information (page tables), accounting information and I/O status. During a context switch the kernel saves the running process's registers and program counter into its PCB and loads the saved values from the next process's PCB, so the next process continues exactly where it stopped.
+
+### How does aging prevent starvation?
+
+Aging gradually increases the priority of a process the longer it waits in the ready queue, for example by one level every fixed amount of time. A low-priority process that keeps being overtaken therefore eventually becomes the highest-priority one and gets the CPU, so every process is eventually served. Aging is the standard fix for starvation in Priority scheduling, and it is also used in SJF/SRTF variants and in multilevel feedback queues.
+
+### Which scheduling algorithms can starve a process and therefore need aging?
+
+Aging is needed by the algorithms that can starve a process: Priority scheduling (both preemptive and non-preemptive), where low-priority processes may wait forever; SJF and SRTF, where long jobs can starve if shorter jobs keep arriving; and multilevel queue or multilevel feedback queue scheduling, where processes in a low queue can starve. FCFS and Round Robin do not starve any process, so they do not need aging.
+
+### How can CPU utilisation be improved?
+
+CPU utilisation is the percentage of time the CPU is busy. It can be improved by keeping the CPU supplied with work: use multiprogramming so that another process runs while one waits for I/O, keep a good mix of CPU-bound and I/O-bound processes, avoid the convoy effect (use SJF or Round Robin instead of FCFS), and keep context-switch overhead low (do not make the time quantum too small). The target in real systems is roughly 40 percent for a lightly loaded system up to about 90 percent for a heavily loaded one.
+
+### Why does response time matter in interactive systems?
+
+Response time is the time from submitting a request until the first response appears, not until the process finishes. In interactive and time-sharing systems the user is waiting at the screen, so a short and predictable response time matters more than a short turnaround time. Round Robin with a small quantum and multilevel feedback queues give good response time because every process gets the CPU quickly, whereas FCFS and non-preemptive SJF can make a user wait behind a long job.
+
+### What is swapping and why does the medium-term scheduler use it?
+
+Swapping means temporarily moving a process out of main memory to disk and bringing it back later. The medium-term scheduler does this to reduce the degree of multiprogramming when memory is over-committed or when the mix of processes is poor: a partially executed process is swapped out, memory is freed for others, and the process is swapped back in later and continues from where it stopped.
+
+### How does a multilevel feedback queue prevent starvation?
+
+In a multilevel feedback queue a process that waits too long in a low-priority queue is moved up to a higher-priority queue (aging), and many systems also periodically boost every process back to the top queue. A process that uses a lot of CPU is demoted instead, so interactive and short jobs keep high priority while long jobs are still guaranteed to run eventually, which prevents starvation.
+
+### How is priority inversion solved?
+
+Priority inversion happens when a high-priority process waits for a resource (such as a lock) held by a low-priority process, and a medium-priority process keeps preempting the low-priority one, so the high-priority process is delayed by a lower one. It is solved by the priority inheritance protocol: the low-priority process holding the resource temporarily inherits the highest priority of the processes waiting for it, finishes quickly, releases the resource, and then returns to its old priority. Another solution is the priority ceiling protocol.
+
+### What is the difference between hard and soft real-time systems?
+
+In a hard real-time system, missing a deadline is a failure of the whole system and the deadline must always be met, as in an airbag controller or a pacemaker, so the scheduler must give guarantees. In a soft real-time system a missed deadline only degrades quality and is tolerable, as in video streaming or audio playback; critical real-time tasks just get higher priority than ordinary ones.
+
+### When does Rate Monotonic scheduling fail?
+
+Rate Monotonic gives the highest fixed priority to the task with the shortest period. For n periodic tasks it is guaranteed to meet all deadlines when the total CPU utilisation, the sum of C/T over the tasks, is at most n(2^(1/n) − 1), which tends to about 69 percent for many tasks. Above that bound it may still work, but it can miss deadlines, and above 100 percent utilisation no algorithm can meet them. Because its priorities are fixed it can fail in cases where Earliest Deadline First, with dynamic priorities, still succeeds, for example at utilisation between the Rate Monotonic bound and 100 percent.
+
+### Is Earliest Deadline First optimal?
+
+Yes: for independent, preemptable tasks on a single processor, Earliest Deadline First is optimal, because if any algorithm can meet all the deadlines, EDF can too. For periodic tasks whose deadline equals their period, EDF can schedule the task set exactly when the total utilisation is at most 100 percent. Its drawbacks are that priorities change dynamically, which adds overhead, and that under overload its behaviour is hard to predict.
+
+### What is the Completely Fair Scheduler (CFS) in Linux and how does it work?
+
+The Completely Fair Scheduler was the default Linux scheduler for ordinary processes from kernel 2.6.23; Linux 6.6 replaced it with EEVDF, which keeps the same fairness idea. CFS tries to give every runnable task a fair share of the CPU. It tracks each task's virtual runtime (vruntime), the CPU time it has used scaled by its weight, which comes from its nice value. The task with the smallest vruntime, the leftmost node of a red-black tree, runs next, so tasks that have received less CPU run first. Picking the next task takes O(log n) time.
+
+### What is the difference between user-level and kernel-level thread scheduling?
+
+User-level threads are managed by a thread library inside the process and the kernel does not know about them, so the kernel schedules only the process; if one user thread makes a blocking system call, the whole process may block, and the threads cannot run in parallel on several CPUs. This is called process-contention scope. Kernel-level threads are scheduled directly by the operating system (system-contention scope), so they can run in parallel on multiple CPUs and one blocked thread does not block the others, but creating and switching them costs more.
+
+### What is average waiting time and how is it calculated?
+
+Waiting time is the total time a process spends in the ready queue waiting for the CPU: waiting time = turnaround time − burst time, where turnaround time = completion time − arrival time. The average waiting time is the sum of the waiting times of all processes divided by the number of processes. For Round Robin, draw the Gantt chart first to find each completion time, then apply these formulas.
+
+### Why does the convoy effect happen in FCFS?
+
+The convoy effect happens in FCFS because it is non-preemptive and serves processes strictly in arrival order. Once a long CPU-bound process gets the CPU it keeps it until it finishes, so all the short processes behind it must wait, even though each of them needs only a little time. The I/O-bound processes also queue behind it, so the I/O devices sit idle, and average waiting time rises.
+
+### What are the drawbacks of non-preemptive scheduling?
+
+In non-preemptive scheduling a running process keeps the CPU until it finishes or blocks, so one long process can monopolise the CPU and make everyone else wait (the convoy effect). Response time is poor, an urgent or high-priority process that arrives cannot take the CPU, and a process stuck in an infinite loop can hang the system. Its advantages are simplicity and very low context-switch overhead.
+
 ### Which scheduling algorithms can cause starvation?
 
 SJF, SRTF and Priority scheduling can cause starvation: SJF and SRTF starve long jobs, and Priority scheduling starves low-priority processes. FCFS and Round Robin cannot, since every process eventually reaches the head of the queue. Aging fixes starvation in the first group.

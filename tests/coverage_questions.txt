@@ -149,3 +149,43 @@ What is a time quantum? Why does a small quantum increase overhead?
 Which algorithm is the best, and why does it have a downside?
 Explain FCFS and also tell me what the convoy effect is
 How do I choose the right scheduling algorithm?
+What is context switching? Why does it introduce overhead?
+What is a context switch and why is it expensive?
+What is the dispatcher? How is it different from the scheduler?
+What is dispatch latency? Why should it be small?
+What is a process control block? Why is it needed for context switching?
+What is the ready queue? Which algorithms use it and how?
+What is a CPU burst? What is an I/O burst?
+What is a CPU-bound process? How is it different from an I/O-bound process?
+What is preemptive scheduling? Why is it needed?
+What is non-preemptive scheduling? What are its drawbacks?
+What is starvation? How does aging solve it?
+What is aging? Which algorithms need it?
+What is the convoy effect? Why does it happen in FCFS?
+What is throughput? Which algorithm gives the highest throughput?
+What is CPU utilization? How can it be improved?
+What is turnaround time? How is it different from waiting time?
+What is response time? Why does it matter for interactive systems?
+What is a Gantt chart? How is it used in scheduling problems?
+What is a time quantum? What happens if it is too large?
+What is the long-term scheduler? How is it different from the short-term scheduler?
+What is the medium-term scheduler? Why is swapping used?
+What is multilevel queue scheduling? Why can it cause starvation?
+What is multilevel feedback queue scheduling? How does it prevent starvation?
+What is priority inversion? How is it solved?
+What is lottery scheduling? Why is it fair?
+What is highest response ratio next? How is the response ratio calculated?
+What is real-time scheduling? What is the difference between hard and soft real-time?
+What is rate monotonic scheduling? When does it fail?
+What is earliest deadline first scheduling? Is it optimal?
+What is multiprocessor scheduling? What is load balancing?
+What is processor affinity? Why does it improve performance?
+What is the Completely Fair Scheduler in Linux? How does it work?
+What is thread scheduling? What is the difference between user-level and kernel-level threads?
+What is a process? What are the states of a process?
+Why is FCFS simple? What is its main disadvantage?
+Why does SJF give the minimum average waiting time? Can it be implemented exactly?
+Why does Round Robin give good response time? What is its disadvantage?
+What is the difference between FCFS and SJF? Which one is better?
+What is average waiting time? How is it calculated for Round Robin?
+How does preemptive priority scheduling work? What problem does it have?
