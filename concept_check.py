@@ -46,7 +46,7 @@ HEDGE = (r"\b(?:if|unless|only|when|whereas|whether|differ\w*|compar\w*|assum\w*
          r"never terminat\w*|student)\b")
 QUALIFIER = (r"\b(?:assum\w*|provided|as long as|normally|standard|usual(?:ly)?|finite|eventually (?:finish|terminat)\w*|"
              r"bounded|\(n\s*[−-]\s*1\)\s*[×x*]\s*q|n\s*[−-]\s*1\)?\s*[×x*]\s*q|if the processes ahead|"
-             r"under (?:normal|ordinary|standard))\b")
+             r"under (?:normal|ordinary|standard)|once (?:it|they|the process\w*) (?:has|have)? ?(?:arrived|entered|joined))\b")
 
 _sent_split = re.compile(r"(?<=[.!?])\s+(?=[A-Z(*\-•\d])|\n+|\||;\s*|,\s*(?:and|but|while|whereas)\s+")
 
@@ -93,11 +93,21 @@ def _sjf_prevents_starvation(s):
             return "claims SJF/SRTF prevents starvation (it can starve long jobs when shorter jobs keep arriving)"
 
 
+# A sentence DENIES starvation only when the negation is attached to the starvation term itself ("never starves",
+# "cannot cause starvation", "no starvation", "starvation is impossible").  "P1 will never get its turn ... illustrating
+# starvation" or "a job that never runs is starved" co-occur with 'never' but AFFIRM starvation, so a bare 'never'
+# anywhere in the sentence must not count.
+_DENIAL = (r"\b(?:never|cannot|can't|can\s+not|does\s+not|doesn't|do\s+not|don't|will\s+not|won't|no)\b"
+           r"(?:\W+(?!and\b|but\b|which\b|that\b|because\b)\w+){0,2}?\W+(?:starv\w*|cause\s+starvation)"
+           r"|\bstarvation\b(?:\W+\w+){0,3}?\W+(?:is|are)\s+(?:impossible|not\s+possible|ruled\s+out)"
+           r"|\bstarvation[- ]free\b|\bguarantee\w*\s+(?:that\s+)?(?:no\s+)?starvation")
+
+
 def _priority_cannot_starve(s):
     """'Priority scheduling / SJF never starves anyone' (without aging) is false."""
     a = algos_in(s)
     if a & {"sjf", "srtf", "priority"} and not a & {"fcfs", "rr", "hrrn", "mlfq", "edf"} and has(STARVE, s) \
-            and has(r"\b(?:never|cannot|can't|impossible|guarantee\w*|no)\b|does not (?:cause|starve)|doesn't", s) \
+            and has(_DENIAL, s) \
             and not has(r"\b(?:aging|ageing|if|unless|when|necessarily|always|student|myth|misconception|whether|without|"
                         r"aged|mitigat\w*|prevent\w*|avoid\w*|boost\w*)\b|no priority", s):
         return "says SJF/SRTF/Priority never starves a process (they can, depending on the workload; aging mitigates it)"
@@ -116,8 +126,10 @@ def _short_first_avoids(s):
 def _convoy_is_starvation(s):
     if has(CONVOY, s) and has(STARVE, s):
         if has(r"\b(?:same as|is starvation|is a (?:kind|form|type) of starvation|also called starvation|"
-               r"synonym|equivalent|causes? starvation|lead(?:s|ing)? to starvation|results? in starvation|"
-               r"is when .{0,40}starv)", s) and not negated(s):
+               r"(?:another|other|alternative|a different|different) (?:name|term|word|label) for|"
+               r"also (?:known|referred to) as|(?:just|merely|simply) (?:a |another )?(?:different )?"
+               r"(?:word|name|term|label) for|synonym|equivalent|causes? starvation|lead(?:s|ing)? to starvation|"
+               r"results? in starvation|is when .{0,40}starv)", s) and not negated(s):
             return "treats the convoy effect as starvation (it is a long finite delay, not indefinite postponement)"
         if has(r"\bconvoy\b[^.]{0,60}\b(?:indefinite\w*|never (?:get|run|finish)|forever)\b", s) and not negated(s):
             return "describes the convoy effect as an indefinite wait (it ends when the long process finishes)"
@@ -144,8 +156,22 @@ def _rr_short_priority_conclusion(s):
         return "says Round Robin gives short processes priority"
 
 
+def _aging_guarantees_everywhere(s):
+    """Aging mitigates starvation under a priority-style policy; it is not a guarantee under every policy or workload."""
+    if has(r"\bag(?:e|ing)\b", s) and has(
+            r"\b(?:guarantee[sd]?|ensures?|always (?:prevents?|eliminates?|solves?)|completely (?:eliminates?|prevents?|"
+            r"removes?)|permanently (?:prevents?|eliminates?))\b", s) \
+            and has(r"\b(?:any|every|all)\s+(?:possible\s+|other\s+)?(?:scheduler|scheduling|polic\w+|algorithm|workload|"
+                    r"system|situation|case)|\bin\s+all\s+cases\b|\bno\s+matter\b|\bunder\s+all\b|\balways\b|\b100\s*%", s) \
+            and not has(r"\b(?:not|n't|never|cannot|no)\s+(?:\w+\s+){0,2}(?:guarantee|ensure|always|eliminat|prevent|solve|remove)\w*|"
+                        r"\bno\s+guarantee|\b(?:if|unless|provided|assum\w*|as long as|only|when|whether|limit\w*|myth|"
+                        r"misconception|student)\b", s):
+        return "says aging guarantees freedom from starvation under every policy or workload (it mitigates starvation in " \
+               "priority-style policies; it is not universal)"
+
+
 RULES = [_fcfs_starves, _priority_cannot_starve, _sjf_prevents_starvation, _short_first_avoids, _convoy_is_starvation,
-         _convoy_not_fcfs_only_wrong, _always_starves, _rr_short_priority_conclusion]
+         _convoy_not_fcfs_only_wrong, _always_starves, _rr_short_priority_conclusion, _aging_guarantees_everywhere]
 
 
 def rule_problems(answer):
@@ -216,8 +242,11 @@ SPECS = [
       _p("ties the convoy effect to FCFS", CONVOY, r"fcfs|first[- ]come|arrival order"),
       _p("says standard FCFS does not normally starve a process", r"fcfs|first[- ]come",
          r"(?:not|no|n't|cannot|never|neither|without)\b[^.\n]{0,70}(?:starv|indefinite)|(?:starv|indefinite)\w*[^.\n]{0,60}(?:not|no|n't|cannot|unlikely|rare)"),
-      _p("says SJF can starve long jobs", r"sjf|shortest[- ]job|shortest[- ]remaining", r"long"),
-      _p("says Priority scheduling can starve low-priority jobs", r"priorit\w+", r"low"),
+      # one example of an algorithm that really can starve (SJF/SRTF: long jobs; Priority: low-priority jobs) is enough:
+      # a focused answer to "is starvation the same as the convoy effect?" need not list every algorithm
+      _p("says SJF can starve long jobs or Priority scheduling can starve low-priority jobs",
+         r"(?:sjf|srtf|shortest[- ](?:job|remaining))[^.\n]{0,90}long[- ](?:job|process)|long[- ](?:job|process)\w*[^.\n]{0,60}"
+         r"(?:sjf|srtf|shortest)|priorit\w+[^.\n]{0,90}low(?:er)?[- ]priority|low(?:er)?[- ]priority[^.\n]{0,60}priorit"),
       _p("separates a long finite delay from indefinite postponement",
          r"finite|eventually|ends|until|temporar\w+|performance|not the same|differ\w*|whereas|unlike|while|but")]),
     ("starvation_sjf",
@@ -241,7 +270,16 @@ SPECS = [
 _SPEC_RE = [(name, re.compile(q, re.I | re.S), allowed, pts) for name, q, allowed, pts in SPECS]
 
 
+def is_compound(question):
+    """A numbered/bulleted list of questions, or three or more question marks.  The essential points of a topic spec
+    describe ONE focused question; demanding them of a six-part answer would reject a complete answer."""
+    listed = re.findall(r"(?m)^[ \t]*(?:\(?\d{1,2}[.)]|[-*•])[ \t]+\S", question)
+    return len(listed) >= 3 or question.count("?") >= 3
+
+
 def spec_for(question):
+    if is_compound(question):
+        return None, None, []
     for name, rx, allowed, pts in _SPEC_RE:
         if rx.search(question):
             return name, allowed, pts
@@ -310,10 +348,44 @@ def verify(question, answer, context="", require_points=True):
     require_points=False (exam-format questions: MCQ options, true/false, assertion-reason ...) keeps every fact rule but
     does not demand the topic's essential points, because the question's wording then says nothing about what to cover."""
     spec, _, _ = spec_for(question)
+    uncertain = unsupported(answer, context) if context else []
     problems = rule_problems(answer) + contradictions(answer) + absolute_claims(answer) \
-        + unrelated_algorithms(question, answer) + (unsupported(answer, context) if context else [])
+        + unrelated_algorithms(question, answer) + uncertain
     missing = missing_points(question, answer) if require_points else []
-    return {"ok": not problems and not missing, "problems": problems, "missing": missing, "spec": spec}
+    verdict = {"ok": not problems and not missing, "problems": problems, "missing": missing, "spec": spec}
+    if uncertain:               # a subset of `problems`: claims the retrieved text neither confirms nor contradicts
+        verdict["uncertain"] = uncertain
+    return verdict
+
+
+def hard_problems(verdict):
+    """The problems that are real errors (a fact rule fired), as opposed to claims that are merely unsupported by the
+    retrieved text.  A model answer whose ONLY issue is the latter can be shown with a qualification instead of being
+    thrown away."""
+    soft = set(verdict.get("uncertain", []))
+    return [p for p in verdict["problems"] if p not in soft]
+
+
+def classify_claims(answer, context=""):
+    """Sentence-level verdicts for the topics the rules know about: 'correct', 'incorrect' (a fact rule fires),
+    'conditional' (true only under a stated or missing assumption) or 'uncertain' (the retrieved text does not back it).
+    Sentences about other topics are not judged and are left out."""
+    out = []
+    for s in sentences(answer):
+        if not (algos_in(s) or has(CONVOY, s) or has(STARVE, s) or has(r"\bag(?:e|ing)\b", s)):
+            continue
+        wrong = [p for rule in RULES for p in [rule(s)] if p]
+        if wrong:
+            out.append({"sentence": s, "verdict": "incorrect", "reason": wrong[0]})
+        elif absolute_claims(s):
+            out.append({"sentence": s, "verdict": "conditional", "reason": absolute_claims(s)[0]})
+        elif context and unsupported(s, context):
+            out.append({"sentence": s, "verdict": "uncertain", "reason": "not supported by the retrieved material"})
+        elif has(r"\b(?:if|when|unless|provided|as long as|assum\w*|depend\w*|under|only)\b", s):
+            out.append({"sentence": s, "verdict": "conditional", "reason": "holds under a stated condition"})
+        else:
+            out.append({"sentence": s, "verdict": "correct", "reason": ""})
+    return out
 
 
 def correction_note(verdict):

@@ -48,6 +48,15 @@ SYSTEM_PROMPT = (
 NEEDS_MODEL = {"mcq", "true_false", "fill_blank", "incorrect_statement", "assertion_reason"}
 MAX_REGENERATIONS = 1          # a failed fact check gets one corrected retry, then the vetted course answer is used
 
+# While a numbered/bulleted list of questions is being answered, the scenario text that introduced the list (and any
+# closing instructions) travels with every part: it goes into the model prompt and is allowed as a source of numbers
+# and facts, but never into retrieval or intent detection, which see only the question itself.
+_CTX = threading.local()
+
+
+def _scenario():
+    return getattr(_CTX, "scenario", None) or ""
+
 
 # --------------------------------------------------------------------------- #
 # Generation backends                                                          #
@@ -135,7 +144,7 @@ def _context_text(h, result):
     return " ".join(p for p in parts if not _is_worked_example(p))
 
 
-def build_prompt(question, hits, result=None, idf=None, examples=True, web_hits=None, revision=None):
+def build_prompt(question, hits, result=None, idf=None, examples=True, web_hits=None, revision=None, scenario=None):
     ctx = "\n\n".join(f"[{i+1}] ({cite(h)})\n{_context_text(h, result)}" for i, h in enumerate(hits))
     parts = [FACT_CARD] + ([CONCEPT_FACTS] if not result else []) + [f"Context from the course material:\n{ctx}"]
     if web_hits and not result:
@@ -160,6 +169,10 @@ def build_prompt(question, hits, result=None, idf=None, examples=True, web_hits=
         ex = examples_block(question, idf) if examples else ""
         if ex:
             parts.append(ex)
+        if scenario:
+            parts.append("Scenario and instructions given by the student (a premise for the question below; its numbers "
+                         "are the student's, not course facts). Say which statements are established scheduling concepts "
+                         f"and which depend on the assumptions of this scenario:\n{scenario}")
         parts.append(f"Student question: {question}\n\n{format_directive(question)}\n"
                      "Cite the context as [1], [2], [3] where you use it. Do not invent a numeric example "
                      "(process list, burst times, a Gantt chart, or waiting/turnaround numbers): the student "
@@ -644,7 +657,8 @@ _WH = r"(?:why|how|when|what|which|where|who|can|could|does|do|is|are|should|wou
 _JOIN = re.compile(r"\s*(?:\?+\s+|;\s+|,?\s+and\s+(?:also\s+|then\s+)?(?=" + _WH + r"\b)|,?\s+(?:also|plus)\s+(?=" + _WH + r"\b))", re.I)
 _POSSESSIVE = re.compile(r"\b(?:its|their)\b", re.I)
 _PRONOUN = re.compile(r"\b(?:it|they|them|this algorithm|that algorithm|this one|that one)\b", re.I)
-MAX_PARTS = 3
+MAX_PARTS = 8
+LEGACY_PARTS = 3     # 2-3 prose parts keep the original joiner; longer or listed questions use _answer_list
 # "What is context switching? Why does it ..." -> the concept the first part asks about is what "it" means
 _ASKED_ABOUT = re.compile(r"^\W*(?:what\s+(?:is|are|was|does)|what's|explain|define|describe|tell\s+me\s+about)\s+"
                           r"(?:the\s+|a\s+|an\s+)?(.+?)(?:\s+mean|\s+work)?\W*$", re.I)
@@ -692,12 +706,122 @@ def split_parts(question, in_domain=None):
     return [x + "?" if wh.match(x) and not x.endswith("?") else x for x in parts]
 
 
+
+# ---- numbered / bulleted lists of questions, with an optional scenario before and instructions after ------------------
+_LIST_ITEM = re.compile(r"^[ \t]*(?:\(?\d{1,2}[.)]|\(?[a-hA-H][.)]|[-*•–])[ \t]+(\S.*)$")
+_ITEM_OPENER = re.compile(r"^\W*(?:" + _WH + r"|explain|describe|compare|define|give|tell|list|state|discuss|differentiate|"
+                          r"distinguish|justify|illustrate|identify|show|name|outline|summari[sz]e|write|derive|analy[sz]e)\b", re.I)
+_LEAD_IN = re.compile(r"(?:please\s+)?answer\s+(?:each\s+of\s+)?(?:the\s+)?(?:following|these)[^:.\n]*[:.]?", re.I)
+MAX_LIST_ITEMS = 12
+
+
+def parse_question_list(question):
+    """{"items", "scenario"} for a message that is a list of questions, else None.
+
+    Handles "1. ...", "1) ...", "a) ...", "- ...", "* ...", "• ..." (one question per marker; wrapped lines are joined).
+    The text before the first marker is the scenario, minus a bare "Answer the following questions:"; a paragraph
+    after the list (after a blank line) is a closing instruction ("Use technically accurate explanations ...").
+    Every item must itself be a question or an instruction to explain something, so an ordinary list in a statement
+    (a shopping list of algorithms) is not mistaken for questions."""
+    lines = question.strip().splitlines()
+    marks = [i for i, ln in enumerate(lines) if _LIST_ITEM.match(ln)]
+    if not 2 <= len(marks) <= MAX_LIST_ITEMS:
+        return None
+    items, end = [], marks[0]
+    for n, i in enumerate(marks):
+        stop = marks[n + 1] if n + 1 < len(marks) else len(lines)
+        text, j = _LIST_ITEM.match(lines[i]).group(1).strip(), i + 1
+        while j < stop and lines[j].strip():
+            text += " " + lines[j].strip()
+            j += 1
+        items.append(text)
+        end = j
+    if not all(len(x.split()) >= 3 and _ITEM_OPENER.match(x) for x in items):
+        return None
+    pre = _LEAD_IN.sub(" ", " ".join(ln.strip() for ln in lines[:marks[0]] if ln.strip())).strip()
+    post = " ".join(ln.strip() for ln in lines[end:] if ln.strip())
+    return {"items": items, "scenario": " ".join(x for x in (pre, post) if x)}
+
+
+# words that say HOW to answer, not WHAT the answer is about (excluded when checking that a part was addressed)
+_ASK_STEMS = {w[:5] for w in ("explain describe give define discuss compare state list practical illustrating illustrate "
+                              "example difference different same could would eventually help limitations operating system systems "
+                              "execute run policy possible every").split()}
+_TOPIC = re.compile(r"starv|convoy|\bag(?:e|ing)\b|fcfs|sjf|srtf|round|robin|priorit|quantum|preempt|context|turnaround|"
+                    r"waiting|response|throughput|deadline|dispatch|burst|inversion|mlfq|feedback|hrrn|edf|schedul", re.I)
+
+
+def covers(part, text):
+    """Does `text` address `part`?  Semantic coverage by content: at least half of the part's topic terms (starvation,
+    aging, convoy, an algorithm ...) and at least 40% of its content words must appear in the answer.  Counting
+    paragraphs or bullets says nothing about whether this question was answered."""
+    key = {w for w in concept_check._stems(part) if w not in _ASK_STEMS}
+    if not key:
+        return True
+    have = concept_check._stems(re.sub(r"\[\d+\]", "", text))
+    topic = {w for w in key if _TOPIC.search(w)}
+    return (not topic or len(topic & have) >= (len(topic) + 1) // 2) and len(key & have) / len(key) >= 0.4
+
+
 _LEVEL_RANK = {"error": 0, "unverified": 1, "none": 2, "checked": 3, "stored": 4, "verified": 5}
 
 
 def _shift_citations(text, offset):
     """Part 2's [1] must point at its own passage once the passages of part 1 come first in the source list."""
     return re.sub(r"\[(\d+)\]", lambda m: f"[{int(m.group(1)) + offset}]", text) if offset else text
+
+
+# ---- a scenario followed by a list of questions ("A CPU uses ... P1 has priority 5 ... Answer the following: ...") ----
+_ASSIGNMENT = re.compile(r"answer the following|following questions?|questions?\s*:", re.I)
+_FOLLOW_UP = re.compile(r"^\W*(?:explain|describe|justify|discuss|say)\s+(?:why|how|briefly|the\s+(?:difference|limitations?|reason))\W*$"
+                        r"|^\W*(?:explain|why|justify)\W*$", re.I)
+_DIRECTIVE = re.compile(r"^\W*(?:use|distinguish|be\s+|make\s+sure|ensure|keep|show\s+your|support|cite|write\s+in)\b", re.I)
+_PROCESS_NAME = re.compile(r"\bP\d+\b")
+MAX_BUNDLE = 8
+
+
+def split_bundle(question):
+    """(scenario, [questions], [directives]) when the text is a scenario plus several questions, else None.
+
+    "Can P1 experience starvation? Explain why." stays one question ("Explain why." is a follow-up, not a question of
+    its own); "Use technically accurate explanations." is an instruction about the answer, not something to look up."""
+    q = question.strip()
+    asked = len(re.findall(r"\?+", q))                        # "so??" is one question, not two
+    if asked < 3 and not (_ASSIGNMENT.search(q) and asked >= 2):
+        return None
+    scenario, items, directives, asking = [], [], [], False
+    for sent in re.split(r"(?<=[.?!:])\s+|\n+", q):
+        sent = sent.strip()
+        if not sent:
+            continue
+        if sent.endswith("?"):
+            asking = True
+            items.append(sent)
+        elif not asking:
+            if not _ASSIGNMENT.search(sent):
+                scenario.append(sent)
+        elif _FOLLOW_UP.match(sent) and items:
+            items[-1] += " " + sent
+        elif _DIRECTIVE.match(sent):
+            directives.append(sent)
+        else:
+            items.append(sent)                                 # "Give a practical example illustrating ..."
+    if not 2 <= len(items) <= MAX_BUNDLE:
+        return None
+    return " ".join(scenario), items, directives
+
+
+def echoes_question(question, text):
+    """True when an answer mostly repeats the question's own sentences instead of answering them."""
+    norm = lambda t: re.sub(r"[^a-z0-9 ]", "", re.sub(r"\[\d+\]", "", t.lower())).strip()
+    asked = norm(question)
+    raw = [l.strip(" -*•\t") for l in re.split(r"\n+", text) if len(norm(l)) >= 12]
+    if len(raw) < 3:
+        return False
+    lines = [norm(l) for l in raw]
+    repeated = sum(1 for l in lines if l in asked) / len(lines)
+    questions = sum(1 for l in raw if re.sub(r"\[\d+\]", "", l).rstrip().endswith("?")) / len(raw)
+    return repeated >= 0.5 or questions >= 0.5        # an answer made of questions is not an answer
 
 
 class Tutor:
@@ -777,7 +901,8 @@ class Tutor:
         try:
             text = ollama_chat(self.model, build_prompt(question, hits, result, self.retriever.idf_lookup(),
                                                       examples=not self.model.startswith("ostutor"),
-                                                      web_hits=web_hits, revision=revision))
+                                                      web_hits=web_hits, revision=revision,
+                                                      scenario=_scenario() or None))
         except Exception as e:  # model crashed / timed out: degrade, don't fail the student
             return None, [f"LLM unavailable ({type(e).__name__}); fell back to template mode"]
         problems = verify_llm_numbers(text, result) if result else []
@@ -835,7 +960,7 @@ class Tutor:
         retry, then the answer is dropped (caller falls back to the vetted course text). Every failure is logged."""
         llm, problems = self._generate(question, hits, web_hits=web_hits)
         out["notes"] += problems
-        context = " ".join(h["text"] for h in hits + web_hits)
+        context = (" ".join(h["text"] for h in hits + web_hits) + " " + _scenario()).strip()
         for attempt in range(MAX_REGENERATIONS + 1):
             if not llm:
                 return None
@@ -843,8 +968,20 @@ class Tutor:
             if verdict["ok"]:
                 break
             last = attempt == MAX_REGENERATIONS
-            concept_check.log_failure(question, llm, verdict, f"attempt {attempt + 1}", "fallback" if last else "regenerate")
+            # After the one targeted retry, an answer whose only issue is that the retrieved text does not back some
+            # sentences (no fact rule fired, nothing essential missing) is kept and qualified; replacing a complete
+            # answer by one stored passage would lose more than it protects.
+            keep = last and not concept_check.hard_problems(verdict) and not verdict["missing"]
+            concept_check.log_failure(question, llm, verdict, f"attempt {attempt + 1}",
+                                      "qualified" if keep else "fallback" if last else "regenerate")
             out.setdefault("verification", []).append(verdict["problems"] + verdict["missing"])
+            if keep:
+                out["limitation"] = verdict["uncertain"]
+                out["notes"].append("Some statements go beyond the retrieved course passages (general technical knowledge "
+                                    "or assumptions of your scenario, not cited course material), so treat them as less "
+                                    "certain: " + "; ".join(u.replace("not supported by the retrieved material: ", "")
+                                                           for u in verdict["uncertain"][:3]))
+                break
             if last:
                 out["guard"] = verdict["problems"] + verdict["missing"]
                 out["notes"].append("The model's answer failed the conceptual fact check twice, so the course answer "
@@ -884,8 +1021,27 @@ class Tutor:
     def answer(self, question):
         """The public entry point: never raises, and says honestly how far the answer was verified (out["status"])."""
         try:
-            parts = split_parts(self._plain(question), self.retriever.in_domain)
-            out = self._answer_parts(question, parts) if len(parts) > 1 else self._answer(question)
+            plain = self._plain(question)
+            plan = parse_question_list(plain) if route(plain).kind == "concept" else None
+            if not plan and not route(plain).processes and not re.search(r"\bP\d+\s+\d+\s+\d+", plain):
+                # the same list written as running text, no "1." markers. Checked before the router's guess: its
+                # "new ... questions" pattern calls a long scenario a request for a practice problem
+                loose = split_bundle(plain)
+                if loose:
+                    plan = {"items": loose[1], "scenario": " ".join(x for x in (loose[0], *loose[2]) if x),
+                            "assumed": loose[0] if any(re.search(r"assum|established", d, re.I) for d in loose[2]) else ""}
+            if plan:                                  # "1. ... 2. ..." : every item answered, in order, with the scenario
+                out = self._answer_list(question, plan["items"], plan["scenario"])
+                if plan.get("assumed") and out.get("kind") == "multi":
+                    out["text"] += ("\n\n---\n\n**Established concepts vs. assumptions.** The explanations above are established "
+                                    "scheduling concepts taken from the course material. The facts you gave in the scenario (the "
+                                    "processes, priorities and arrival pattern) are assumptions you supplied: the course notes cannot "
+                                    "verify them, they only show what follows if they hold.")
+                    out["summary"] = out["text"]
+            else:
+                parts = split_parts(plain, self.retriever.in_domain)
+                out = (self._answer_list(question, parts) if len(parts) > LEGACY_PARTS
+                       else self._answer_parts(question, parts) if len(parts) > 1 else self._answer(question))
         except Exception as e:                       # retrieval / parsing / simulation bug: a controlled message, logged
             concept_check.log_failure(question, "", {"problems": [f"{type(e).__name__}: {e}"], "missing": []}, "pipeline", "error")
             return {"kind": "error", "algorithm": None, "result": None, "hits": [], "notes": [], "mode": self.mode,
@@ -938,6 +1094,101 @@ class Tutor:
                 "related": first.get("related", []),
                 "status": {"level": worst["level"], "label": f"Answered in {len(answered)} parts. " + worst["label"]}}
 
+    @staticmethod
+    def _source_warnings(hits):
+        """Tell the student when a retrieved passage itself breaks the scheduling fact rules or two passages disagree,
+        instead of quoting it as if it were reliable.  The passage stays in the sources (nothing is hidden or renamed);
+        the answer is checked against the rules either way."""
+        notes = []
+        for h in hits:
+            bad = concept_check.rule_problems(h["text"]) + concept_check.contradictions(h["text"])
+            if bad:
+                notes.append(f"Source caution: the retrieved passage \"{h.get('title') or h['source']}\" ({h['source']}) "
+                             "conflicts with standard scheduling facts, so its claim is not relied on: " + bad[0][:160])
+        if not notes and len(hits) > 1:
+            clash = concept_check.contradictions(" ".join(h["text"] for h in hits))
+            if clash:
+                notes.append("Source caution: the retrieved passages disagree (" + "; ".join(clash) + "); the answer follows "
+                             "the standard definitions.")
+        return notes
+
+    def _repair(self, part, out):
+        """The one bounded repair for a part whose answer does not address it: search again with only the part's content
+        words (the original query may have been pulled toward the scenario's wording), answer from that evidence with the
+        same extractive template and the same fact rules, and keep it only if it now covers the part."""
+        words = " ".join(w for w in re.findall(r"[A-Za-z][A-Za-z-]+", part) if w[:5].lower() not in _ASK_STEMS and len(w) > 2)
+        hits = self.retriever.search(words or part, k=TOP_K_SHOWN)
+        # in_scope() also refuses a part whose filler words ("help", "eventually", "execute") appear in no passage.  Here
+        # the part is judged on its topic: it names a scheduling term, is not another subject, and its best passage matches.
+        if not hits or not (self.retriever.in_scope(part, hits) or (
+                self.retriever.in_domain(part) and not self.retriever.other_topic(part) and hits[0]["score"] >= 0.5)):
+            return out
+        text = template_concept(part, hits, self.retriever.idf_lookup(), None)
+        if not text or concept_check.rule_problems(text) or not covers(part, text):
+            return out
+        fixed = dict(out, text=text, hits=hits, in_scope=True, kind="concept", generated=False,
+                     mode="retrieval repair (course sentences quoted)", notes=list(out.get("notes", [])) +
+                     ["The first answer did not address this question, so it was answered again from a keyword search."])
+        fixed.pop("title", None)
+        fixed.pop("body", None)
+        fixed["status"] = {"level": "stored", "label": "Sentences quoted from the course material (not generated)"}
+        return fixed
+
+    def _answer_list(self, question, parts, scenario=""):
+        """Answer every question of a list, in the order asked, each from its own evidence (so retrieval covers all
+        parts) and through the ordinary verified pipeline.  A part whose answer does not address it gets one repair; a
+        part that still cannot be answered is listed with that fact instead of being dropped."""
+        _CTX.scenario = scenario
+        try:
+            subs = []
+            for part in parts:
+                o = self._answer(part)
+                o["status"] = self._status(part, o)
+                answered = o.get("in_scope", True) and o["kind"] == "concept" and o.get("text")
+                if o["kind"] == "concept" and (not answered or not covers(part, o["text"])):
+                    o = self._repair(part, o)
+                    o["status"] = o.get("status") or self._status(part, o)
+                subs.append((part, o))
+        finally:
+            _CTX.scenario = None
+        hits, blocks, notes, offset, seen, usable = [], [], [], 0, {}, []
+        for i, (part, o) in enumerate(subs, 1):
+            head = f"**Part {i}: {part.strip()}**"
+            ok = o.get("in_scope", True) and o.get("text") and (o["kind"] != "concept" or covers(part, o["text"])
+                                                              or o.get("mode", "").startswith("retrieval repair"))
+            if not o.get("in_scope", True) or not o.get("text"):
+                blocks.append(f"{head}\n\n_I could not find this in the course material, so I won't guess._")
+                notes.append(f"Part {i} could not be answered from the course material: {part.strip()}")
+                continue
+            body = o["text"]
+            m = re.match(r"\*\*(.+?)\*\*\n\n", body)
+            body = body[m.end():] if m else body
+            key = body[:200]
+            if key in seen:                                  # two parts resolved to the same passage
+                blocks.append(f"{head}\n\nSee Part {seen[key]}, which answers this as well.")
+                usable.append(o)
+                continue
+            seen[key] = i
+            body = _shift_citations(body, offset)
+            if not ok:
+                body += ("\n\n_Limitation: the course passages only partly address this question; "
+                         "check the cited sources._")
+                notes.append(f"Part {i} is only partly covered by the course material.")
+            hits += o.get("hits", [])
+            offset = len(hits)
+            notes += [f"Part {i}: {n}" for n in o.get("notes", []) if f"Part {i}: {n}" not in notes]
+            blocks.append(f"{head}\n\n{body}")
+            usable.append(o if ok else dict(o, status={"level": "unverified", "label": "Only partly covered by the course material"}))
+        first = usable[0] if usable else subs[0][1]
+        text = "\n\n---\n\n".join(blocks)
+        worst = min((o["status"] for o in usable), key=lambda st_: _LEVEL_RANK[st_["level"]]) if usable else \
+            {"level": "none", "label": "No part could be answered from the course material"}
+        done = sum(1 for o in usable)
+        return {"kind": "multi", "algorithm": first.get("algorithm"), "result": None, "hits": hits, "notes": notes,
+                "mode": first.get("mode", self.mode), "in_scope": bool(usable), "text": text, "summary": text,
+                "related": first.get("related", []), "parts": [q for q, _ in subs],
+                "status": {"level": worst["level"], "label": f"Answered {done} of {len(subs)} parts. Weakest check among them: " + worst["label"]}}
+
     def _status(self, question, out):
         """How was this answer checked? Only claim what actually happened."""
         results = [x for x in ([out.get("result")] + list(out.get("results") or [])) if x]
@@ -955,8 +1206,13 @@ class Tutor:
         if out["kind"] != "concept" or not out.get("in_scope", True):
             return {"level": "none", "label": "Out of scope: nothing to verify" if not out.get("in_scope", True) else "Not verified"}
         if out.get("generated"):
-            v = concept_check.verify(question, out["text"], " ".join(h["text"] for h in out.get("hits", [])),
+            v = concept_check.verify(question, out["text"],
+                                     (" ".join(h["text"] for h in out.get("hits", [])) + " " + _scenario()).strip(),
                                      require_points=detect_intent(question)[0] not in EXAM_INTENTS)
+            if not v["ok"] and not concept_check.hard_problems(v) and not v["missing"]:
+                return {"level": "unverified",
+                        "label": "Generated answer; no fact rule was broken, but some statements are not backed by the "
+                                 "retrieved course passages (general knowledge or your scenario's assumptions)"}
             return {"level": "checked" if v["ok"] else "unverified",
                     "label": "Generated answer; passed the automatic fact-rule check (rule-based, not a guarantee)" if v["ok"]
                     else "Generated answer; the fact-rule check found issues: " + "; ".join((v["problems"] + v["missing"])[:2])}
@@ -1093,6 +1349,7 @@ class Tutor:
             adv, dis = self._pros_cons_hits(question)
             hits = [h for h in (adv, dis) if h] + [h for h in hits if h is not adv and h is not dis]
         out["hits"] = hits
+        out["notes"] += self._source_warnings(hits)
         if not self.retriever.in_scope(question, hits) and not (
                 evidence and self.retriever.in_domain(question) and not self.retriever.other_topic(question)):
             out.update(in_scope=False, hits=[],
@@ -1146,7 +1403,9 @@ class Tutor:
         llm = self._verified_concept_answer(question, hits, web_hits, out)
         if llm:
             bad = bad_formulas(llm)
-            invented = ungrounded_numbers(llm, " ".join(h["text"] for h in hits + web_hits), question)
+            if echoes_question(question, llm):
+                bad.append("it only repeated the question")
+            invented = ungrounded_numbers(llm, " ".join(h["text"] for h in hits + web_hits), question + " " + _scenario())
             if invented:
                 bad.append("numbers not found in the course material: " + ", ".join(invented))
             if bad:

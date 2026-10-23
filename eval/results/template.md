@@ -5,12 +5,12 @@
 | Category | Passed | Total |
 |---|---|---|
 | A | 26 | 26 |
-| B | 27 | 27 |
+| B | 26 | 27 |
 | D | 16 | 21 |
 | E | 8 | 8 |
-| F | 19 | 23 |
+| F | 21 | 23 |
 | G | 7 | 22 |
-| M | 5 | 9 |
+| M | 4 | 9 |
 | N | 36 | 36 |
 | S | 10 | 10 |
 | X | 3 | 3 |
@@ -19,15 +19,14 @@ Failures by stage: generation 28
 
 ## Failures
 
+- `b-edf` [generation] missing fact: real-?time — 'What is Earliest Deadline First scheduling?'
+- `d-minwait-1` [generation] missing fact: sjf|shortest[- ]job|srtf|shortest[- ]remaining — 'Which algorithm minimizes average waiting time?'
 - `d-batch` [generation] missing fact: fcfs|sjf|shortest|first[- ]come — 'Which algorithm is suitable for batch processing?'
-- `d-starve-2` [generation] missing fact: sjf|shortest — 'which scheduling algorithms can lead to starvation of processes'
 - `d-quantum-1` [generation] missing fact: fcfs|context switch|response|overhead — 'What are the effects of increasing the Round Robin time quantum?'
 - `d-quantum-3` [generation] missing fact: fcfs|context switch|response|overhead — 'what if the quantum is too small in rr'
 - `d-lowwait-unsuit` [generation] missing fact: starv|response|long (job|process)|burst.{0,30}(predict|know)|fair|inte — 'Why can an algorithm with low waiting time still be unsuitable for a system?'
 - `f-unfair` [generation] missing fact: long — 'How can SJF be unfair?'
 - `f-longresp` [generation] missing fact: first|arriv|order|queue — 'Why does FCFS give long response times?'
-- `f-workload` [generation] missing fact: burst|arriv|mix|workload|process — 'Why does the performance of a scheduling algorithm depend on the workload?'
-- `f-aging-1` [generation] missing fact: gradual|increas|rais — 'How does aging prevent starvation?'
 - `g-mcq1` [generation] missing fact: \bsjf\b|shortest — 'Which of the following algorithms can cause starvation?\n(a) FCFS\n(b) Round Robin\n(c) SJF\n('
 - `g-mcq4` [generation] missing fact: fcfs|first[- ]come — 'The convoy effect is associated with which algorithm?\n(a) Round Robin\n(b) SJF\n(c) FCFS\n(d)'
 - `g-tf1-1` [generation] wrong or missing verdict (starts: 'This is a true/false question. Judging it needs the language model, wh') — 'True or false: Round Robin can cause starvation.'
@@ -43,6 +42,7 @@ Failures by stage: generation 28
 - `g-ar1` [generation] missing fact: true|correct|yes — 'Assertion (A): Round Robin has no starvation. Reason (R): Every ready process receives the'
 - `g-ar2` [generation] missing fact: a is false|assertion.{0,20}false|false — 'Assertion (A): SJF never causes starvation. Reason (R): SJF always picks the shortest job.'
 - `g-incorrect1` [generation] missing fact: \(c\)|\bc\b|sjf never starves|sjf.{0,40}(can|may) starv — 'Which statement is incorrect? (a) FCFS is non-preemptive (b) Round Robin is preemptive (c)'
+- `m-rr-starve-2` [generation] wrong or missing verdict (starts: 'SJF deliberately favours short processes: it picks the shortest burst ') — 'Explain how round robin starves long processes.'
 - `m-rr-short` [generation] wrong or missing verdict (starts: 'SJF deliberately favours short processes: it picks the shortest burst ') — 'Round Robin always runs the shortest process first, right?'
 - `m-tat` [generation] wrong or missing verdict (starts: 'This is a true/false question. Judging it needs the language model, wh') — 'Waiting time is the same as response time in every algorithm, correct?'
 - `m-prio` [generation] missing fact: depend|convention|lower (number|value)|not always|no\b — 'In priority scheduling a higher priority number always means the process runs first, corre'
