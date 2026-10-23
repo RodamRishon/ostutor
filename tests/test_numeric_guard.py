@@ -272,8 +272,10 @@ def test_pipeline_corrects_a_wrong_explanation_before_display(algo, q):
     assert any("corrected" in n for n in out["notes"])
     assert out["status"]["level"] == "verified" and "2 number(s)" in out["status"]["label"]
     assert out["numeric_check"]["unresolved"] == 0
-    # the rest of the explanation, and the simulator's own solution, are still there
-    assert "Segments:" in out["text"] and "Verified by the simulator" in out["text"]
+    # the simulator's own solution comes first; the checked remainder of the model's explanation follows it
+    assert out["text"].startswith(out["summary"].split("\n\nOpen *Walk me")[0][:200])
+    assert "**Model's explanation**" in out["text"] and "Segments:" in out["text"]
+    assert out["text"].index("Segments:") > out["text"].index("**Model's explanation**")
     assert ng.validate(out["text"], res).ok                                      # nothing wrong remains anywhere in the response
 
 
@@ -283,7 +285,8 @@ def test_pipeline_leaves_a_correct_explanation_alone(algo, q):
     res = tutor.Tutor(use_llm=False).answer(prompt)["result"]
     good = explanation(res)
     out = _Stub(good).answer(prompt)
-    assert out["text"].startswith(good) and not out.get("corrections")
+    assert good in out["text"] and not out.get("corrections")                    # kept verbatim, after the simulator's solution
+    assert out["text"].index(good) > out["text"].index("**Model's explanation**")
     assert not any("corrected" in n or "contradicted" in n for n in out["notes"])
     assert out["status"]["label"].endswith("definitions")
 

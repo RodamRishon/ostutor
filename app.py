@@ -156,7 +156,7 @@ with st.sidebar:
             # Also pick up edited code, not just the rebuilt index, so a restart of Streamlit is not needed. Every
             # project module is reloaded, leaves first: tutor.py imports from intent / scheduler / checker, so
             # reloading only retriever + tutor fails with ImportError as soon as one of those gained a new name.
-            for _name in ("build_index", "scheduler", "numeric_guard", "facts", "concept_check", "rich_answers", "present", "checker",
+            for _name in ("build_index", "scheduler", "numeric_guard", "explain", "facts", "concept_check", "rich_answers", "present", "checker",
                           "practice", "intent", "router", "retriever", "tutor"):
                 if _name in sys.modules:
                     importlib.reload(sys.modules[_name])

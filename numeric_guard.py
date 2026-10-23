@@ -228,6 +228,13 @@ class _Checker:
     def _bad(self, issue):
         (self.issues if issue.corrected else self.unresolved).append(issue)
 
+    @staticmethod
+    def _operand(text, pos):
+        """True if the name at `pos` is an operand of a formula ("TAT = CT - AT = 9 - 3"): the character before it
+        is an arithmetic operator, so it is being used in a calculation, not claimed to equal something."""
+        before = text[:pos].rstrip(" \t")
+        return bool(before) and before[-1] in "-\u2212\u2013\u2014+\u00d7*/"
+
     # -- expression claims (metric values and averages) ------------------------------------------------------
     def _check_value(self, m, key, pid=None, average_col=None, label_prefix=None):
         """Check the expression captured as group 'expr' of match m against the simulator and queue a fix."""
@@ -289,7 +296,7 @@ class _Checker:
                            r")\s*(?:of\s+|" + _VERB + r"\s*)" + _HEDGE + _SYMB + _EXPR, re.I)
             for rx in (a, b):
                 for m in rx.finditer(text):
-                    if _PRE_AVG.search(text[max(0, m.start() - 14):m.start()]):
+                    if _PRE_AVG.search(text[max(0, m.start() - 14):m.start()]) or self._operand(text, m.start()):
                         continue
                     pid = (m.group("p1") or m.groupdict().get("p2") or "").upper()
                     self._check_value(m, key, pid)
@@ -302,10 +309,11 @@ class _Checker:
             rest, base = lm.group("rest"), lm.start("rest")
             for key in _PER_PROCESS:
                 for m in re.finditer(r"\b(?:" + METRICS[key][1] + r")\s*(?:=|:|\bis\b|\bof\b)\s*" + _HEDGE + _SYMB + _EXPR, rest, re.I):
-                    self._shifted(m, base, key, lm.group("pid").upper())
+                    if not self._operand(rest, m.start()):
+                        self._shifted(m, base, key, lm.group("pid").upper())
         head = re.compile(r"(?P<name>\b(?:" + "|".join(METRICS[k][1] for k in _PER_PROCESS) + r"))s?\s*(?:times?)?\s*[:\-]\s*(?P<rest>[^\n]*)", re.I)
         for hm in head.finditer(text):
-            if _PRE_AVG.search(text[max(0, hm.start() - 14):hm.start()]):
+            if _PRE_AVG.search(text[max(0, hm.start() - 14):hm.start()]) or self._operand(text, hm.start()):
                 continue
             key = next((k for k in _PER_PROCESS if _NAMES[k].fullmatch(hm.group("name").strip())), None)
             if not key:

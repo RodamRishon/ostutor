@@ -26,6 +26,7 @@ from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass, field
+from decimal import ROUND_HALF_UP, Decimal
 
 
 @dataclass
@@ -100,6 +101,12 @@ def _append(gantt, pid, start, end):
         gantt.append((pid, start, end))
 
 
+def mean2(values):
+    """The mean of whole numbers rounded HALF UP to 2 decimals, computed exactly. Python's round() is half-to-even on
+    binary floats, so it turns an exact 4.125 into 4.12 where a student (and every textbook) writes 4.13."""
+    return float((Decimal(sum(values)) / Decimal(len(values))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+
+
 def _summarise(procs, gantt, log, algorithm, quantum=None):
     rows = []
     for p in sorted(procs, key=lambda p: p.order):
@@ -118,9 +125,9 @@ def _summarise(procs, gantt, log, algorithm, quantum=None):
         "gantt": gantt,
         "rows": rows,
         "log": log,
-        "avg_waiting": round(sum(r["waiting"] for r in rows) / n, 2),
-        "avg_turnaround": round(sum(r["turnaround"] for r in rows) / n, 2),
-        "avg_response": round(sum(r["response"] for r in rows) / n, 2),
+        "avg_waiting": mean2([r["waiting"] for r in rows]),
+        "avg_turnaround": mean2([r["turnaround"] for r in rows]),
+        "avg_response": mean2([r["response"] for r in rows]),
     }
 
 

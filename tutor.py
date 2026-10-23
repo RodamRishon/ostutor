@@ -21,6 +21,7 @@ import urllib.request
 from build_index import tokenize
 from intent import EXAM_INTENTS, detect_intent, direct_answer, examples_block, format_directive
 import concept_check
+import explain
 import numeric_guard
 import rich_answers
 from checker import check_answer
@@ -601,17 +602,17 @@ NO_EVIDENCE = ("I couldn't find a passage in the course material that says which
                "*arrival order*) or the algorithms you are choosing between.")
 
 
-def numerical_summary(result, notes):
-    """Short chat text for the UI, which draws the Gantt chart and table itself."""
-    q = f" with time quantum {result['quantum']}" if result["quantum"] else ""
-    n = len(result["rows"])
-    w = " + ".join(str(r["waiting"]) for r in result["rows"])
-    t = " + ".join(str(r["turnaround"]) for r in result["rows"])
-    return (f"**{result['algorithm_name']}{q}**: solved by the scheduling simulator (computed, not generated).\n\n"
-            f"- Average waiting time = ({w}) / {n} = **{result['avg_waiting']:.2f}**\n"
-            f"- Average turnaround time = ({t}) / {n} = **{result['avg_turnaround']:.2f}**\n\n"
-            "Waiting = turnaround − burst, turnaround = completion − arrival. "
-            "Open *Walk me through it, step by step* to replay every choice the scheduler makes.")
+_SOLVER_KINDS = ("numerical", "compare_numerical", "worked_example", "check", "practice", "needs_data", "invalid")
+_ROUTING_WORDS = {"round", "robin", "priority", "priorities", "preemptive", "nonpreemptive", "shortest", "remaining", "quantum",
+                  "slice", "first", "served", "scheduling", "algorithm"}
+
+
+def numerical_summary(result, notes, chart=False):
+    """The chat text for a solved problem: every decision in time order, how each time is derived and the averages.
+    The app draws the Gantt chart and the table itself, so they are left out unless the student asked for them
+    (chart=True). Built from the simulator result by explain.py, never by the language model."""
+    return (explain.render(result, notes, chart=chart) + "\n\nOpen *Walk me through it, step by step* to replay the "
+            "chart one decision at a time.")
 
 
 def comparison_text(results, route):
@@ -634,23 +635,8 @@ def comparison_text(results, route):
 
 
 def template_numerical(result, notes):
-    q = f" with time quantum {result['quantum']}" if result["quantum"] else ""
-    out = [f"**{result['algorithm_name']}{q}**: solved by the scheduling simulator "
-           "(computed, not generated).\n"]
-    if notes:
-        out.append("Assumptions: " + "; ".join(notes) + ".\n")
-    out.append("**Step 1: scheduling decisions**")
-    out += [f"- {line}" for line in result["log"]]
-    out.append("\n**Step 2: Gantt chart**\n```\n" + gantt_text(result["gantt"]) + "\n```")
-    out.append("**Step 3: times** (turnaround = completion − arrival, waiting = turnaround − burst, "
-               "response = first run − arrival)\n\n" + table_text(result))
-    n = len(result["rows"])
-    w = " + ".join(str(r["waiting"]) for r in result["rows"])
-    t = " + ".join(str(r["turnaround"]) for r in result["rows"])
-    out.append(f"\n**Step 4: averages**\n- Average waiting time = ({w}) / {n} = **{result['avg_waiting']:.2f}**"
-               f"\n- Average turnaround time = ({t}) / {n} = **{result['avg_turnaround']:.2f}**"
-               f"\n- Average response time = **{result['avg_response']:.2f}**")
-    return "\n".join(out)
+    """The complete worked solution as text (decisions, Gantt chart, table, derivations, averages), from explain.py."""
+    return explain.render(result, notes, chart=True)
 
 
 # --------------------------------------------------------------------------- #
@@ -1279,6 +1265,8 @@ class Tutor:
         r = route(question)
         out = {"kind": r.kind, "algorithm": r.algorithm, "result": None, "hits": [],
                "notes": list(r.notes), "mode": self.mode, "in_scope": True, "text": ""}
+        if typos and r.kind in _SOLVER_KINDS:           # the numbers come from the process table: a fixed word matters only
+            typos = [(a, b) for a, b in typos if b.lower() in _ROUTING_WORDS]    # if it names the algorithm or the quantum
         if typos:
             out["notes"].append("Read your question with spelling fixed: " + ", ".join(dict.fromkeys(f"{a} → {b}" for a, b in typos)) + ".")
 
@@ -1327,11 +1315,10 @@ class Tutor:
             worked = ("Here's a worked example, generated and verified by the simulator:\n\n"
                      "```\n" + text + "\n```\n\n" + template_numerical(result, r.notes))
             out["text"] = worked
-            out["summary"] = llm or (f"Here's a worked example of {result['algorithm_name']}, solved and "
-                                     "verified by the simulator. Open *Walk me through it, step by step* "
-                                     "below to see exactly how each decision was made.")
+            out["summary"] = ("Here's a worked example of " + result["algorithm_name"] + ", solved and verified by the simulator:\n\n"
+                              "```\n" + text + "\n```\n\n" + numerical_summary(result, r.notes))
             if llm:
-                out["text"] = llm + "\n\n---\n**Verified by the simulator:**\n\n" + worked
+                out["text"] = worked + "\n\n---\n**Model's explanation** (every number checked against the simulator):\n\n" + llm
             if problems:
                 out["notes"] += problems
             return out
@@ -1363,10 +1350,16 @@ class Tutor:
             out["text"] = template_numerical(result, r.notes)
             direct = direct_answer(question, result)
             llm = self._checked_explanation(out, llm, result)     # wrong numbers corrected; contradictions withheld
-            body = llm or numerical_summary(result, r.notes)
+            broad = explain.is_broad(question)                # "chart, CT, TAT, WT, RT, averages, explain": the whole solution
+            if broad:
+                direct = None                                 # in solution order, not as a second, shorter copy of it
+            body = numerical_summary(result, r.notes)         # the app draws the chart and the table itself, right below
+            missed = explain.unmatched_requests(question)
+            if missed:
+                out["notes"].append("Not answered, because the simulator only produces schedules and times: " + "; ".join(missed) + ".")
             out["summary"] = (direct + "\n\n" + body) if direct else body
-            if llm:
-                out["text"] = llm + "\n\n---\n**Verified by the simulator:**\n\n" + template_numerical(result, r.notes)
+            if llm:                                           # the model's own wording, kept as a checked extra
+                out["text"] = out["text"] + "\n\n---\n**Model's explanation** (every number checked against the simulator):\n\n" + llm
             if problems:
                 out["notes"] += problems
             return out
