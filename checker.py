@@ -10,6 +10,11 @@ from __future__ import annotations
 
 import re
 
+from numeric_guard import expression_value
+
+# a number or a worked expression such as "14 - 8 = 6" or "(6 + 0 + 3 + 9) / 4 = 4.5": its value is what comes after the last '='
+_VALUE = r"([\d(][\d .+\-\u2212\u2013\u00d7*/()=]*[\d)]|\d)"
+
 
 def parse_student_answer(text):
     ans = {"gantt": [], "waiting": {}, "turnaround": {}, "avg_waiting": None, "avg_turnaround": None}
@@ -20,14 +25,16 @@ def parse_student_answer(text):
         for clause in re.findall(r"(?:" + label + r")[^.;\n]*", text, re.I):
             if re.search(r"av(?:g|erage)", clause, re.I):
                 continue
-            for pid, v in re.findall(r"\b(P\d+)\s*(?:=|:|is)\s*(\d+(?:\.\d+)?)", clause, re.I):
-                ans[key][pid.upper()] = float(v)
-    m = re.search(r"av(?:g|erage)\.?\s*(?:waiting|wt)[^\d\n]{0,20}(\d+(?:\.\d+)?)", text, re.I)
-    if m:
-        ans["avg_waiting"] = float(m.group(1))
-    m = re.search(r"av(?:g|erage)\.?\s*(?:turn\s*-?around|tat)[^\d\n]{0,20}(\d+(?:\.\d+)?)", text, re.I)
-    if m:
-        ans["avg_turnaround"] = float(m.group(1))
+            for pid, expr in re.findall(r"\b(P\d+)\s*(?:=|:|is)\s*" + _VALUE, clause, re.I):
+                v = expression_value(expr)            # "P1 = 14 - 8 = 6" is 6, not 14
+                if v is not None:
+                    ans[key][pid.upper()] = v
+    for key, label in (("avg_waiting", r"(?:waiting|wt)"), ("avg_turnaround", r"(?:turn\s*-?around|tat)")):
+        m = re.search(r"av(?:g|erage)\.?\s*" + label + r"[^\d\n(]{0,20}" + _VALUE, text, re.I)
+        if m:
+            v = expression_value(m.group(1))          # "(6 + 0 + 3 + 9) / 4 = 4.5" is 4.5, not 6
+            if v is not None:
+                ans[key] = v
     return ans
 
 

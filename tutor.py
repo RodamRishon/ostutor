@@ -21,6 +21,7 @@ import urllib.request
 from build_index import tokenize
 from intent import EXAM_INTENTS, detect_intent, direct_answer, examples_block, format_directive
 import concept_check
+import numeric_guard
 import rich_answers
 from checker import check_answer
 from practice import verified_problem
@@ -271,6 +272,11 @@ def excerpt(question, hit, idf=None, known=(), n=3, max_words=95, must_touch=())
     return " ".join(out)
 
 
+_FORMULA = {"waiting": "waiting = turnaround − burst = completion − arrival − burst",
+            "turnaround": "turnaround = completion − arrival (= waiting + burst)",
+            "response": "response = first start − arrival"}
+
+
 def bad_formulas(text):
     """Wrong textbook formulas in an LLM answer, e.g. 'waiting time = completion time - burst time - 1'."""
     problems = []
@@ -291,7 +297,7 @@ def bad_formulas(text):
         if re.search(r"[-−+*/×]\s*\d", rhs):          # a stray constant such as "- 1"
             ok = False
         if not ok:
-            problems.append(f"wrong formula: {m.group(0).strip()[:70]}")
+            problems.append(f"wrong formula: {m.group(0).strip()[:70]} (correct: {_FORMULA[metric]})")
     return problems
 
 
@@ -308,14 +314,10 @@ def ungrounded_numbers(text, context, question):
 
 
 def verify_llm_numbers(text, result):
-    """Flag any 'average waiting/turnaround' in the LLM text that disagrees with the simulator."""
-    problems = []
-    for key, label in (("avg_waiting", "waiting"), ("avg_turnaround", "turnaround")):
-        for m in re.finditer(r"average\s+" + label + r"[^\d\n]{0,40}?(\d+(?:\.\d+)?)", text, re.I):
-            if abs(float(m.group(1)) - result[key]) > 0.011:
-                problems.append(f"the model wrote average {label} time {m.group(1)}, "
-                                f"the simulator computes {result[key]:.2f}")
-    return problems
+    """Every disagreement between the numbers in an LLM explanation and the simulator, one sentence each: which claim
+    was wrong, what the explanation said, what the simulator gives. Covers per-process times, all three averages, the
+    Gantt chart and event times (numeric_guard), not only the averages."""
+    return numeric_guard.validate(text, result).messages if result else []
 
 
 # --------------------------------------------------------------------------- #
@@ -905,8 +907,30 @@ class Tutor:
                                                       scenario=_scenario() or None))
         except Exception as e:  # model crashed / timed out: degrade, don't fail the student
             return None, [f"LLM unavailable ({type(e).__name__}); fell back to template mode"]
-        problems = verify_llm_numbers(text, result) if result else []
-        return text, problems
+        return text, []                # numbers are checked, and corrected, by Tutor._checked_explanation
+
+    def _checked_explanation(self, out, llm, result):
+        """The model's explanation of a solved problem with every number made to agree with the simulator.
+
+        A wrong value is corrected in place (the reasoning around it is kept) and reported in out["notes"] and
+        out["corrections"]; an explanation that contradicts the simulator in a way a number swap cannot repair (a
+        different scheduling decision, a formula that is wrong) is withheld. Returns the text to show, or None."""
+        if not llm:
+            return None
+        report = numeric_guard.validate(llm, result)
+        out["numeric_check"] = {"claims_checked": report.claims, "corrected": len(report.issues),
+                                "unresolved": len(report.unresolved)}
+        bad = bad_formulas(report.text) + [i.message for i in report.unresolved]
+        if bad:
+            out["notes"].append("The model's explanation was left out and only the simulator's verified solution is shown, "
+                                "because it contradicted the simulator: " + " ".join(bad))
+            return None
+        if report.issues:
+            out["corrections"] = [dict(kind=i.kind, subject=i.subject, said=i.claimed, simulator=i.expected, message=i.message)
+                                  for i in report.issues]
+            out["notes"].append("Checked against the simulator: " + str(len(report.issues)) + " number(s) in the model's explanation "
+                                "were wrong and have been corrected to the simulator's values. " + " ".join(i.message for i in report.issues))
+        return report.text
 
     def _concept_hits(self, question, hits, topic):
         """A question about two or more concepts ("convoy effect vs starvation") needs the passage that defines
@@ -1049,8 +1073,31 @@ class Tutor:
                     "Please try rephrasing, or paste the process table directly. (The error was logged.)",
                     "status": {"level": "error", "label": "Error: no answer produced"}}
         if "status" not in out:
+            self._final_numeric_check(out)
             out["status"] = self._status(question, out)
         return out
+
+    @staticmethod
+    def _final_numeric_check(out):
+        """Last gate before display: every number the student is about to read is compared with the simulator once
+        more. The parts built by the simulator pass trivially; this catches anything else that reached the text."""
+        result = out.get("result")
+        if not result or out.get("kind") not in ("numerical", "worked_example"):
+            return
+        for key in ("text", "summary"):
+            body = out.get(key)
+            if not body:
+                continue
+            report = numeric_guard.validate(body, result)
+            if report.unresolved:
+                out[key] = template_numerical(result, []) if key == "text" else numerical_summary(result, [])
+                out["notes"].append("A statement that disagreed with the simulator was replaced by the simulator's own solution: "
+                                    + " ".join(i.message for i in report.unresolved))
+            elif report.issues:
+                out[key] = report.text
+                out.setdefault("corrections", []).extend(
+                    dict(kind=i.kind, subject=i.subject, said=i.claimed, simulator=i.expected, message=i.message) for i in report.issues)
+                out["notes"].append("Corrected to the simulator's values before display: " + " ".join(i.message for i in report.issues))
 
     def _answer_parts(self, question, parts):
         """Answer each part of a compound question on its own, then join the answers under the part they answer."""
@@ -1199,8 +1246,12 @@ class Tutor:
                                "these numbers as verified. Please report this input.")
                 out["summary"] = out["text"]
                 return {"level": "error", "label": "Simulator self-check failed: numbers withheld"}
-            return {"level": "verified", "label": "Verified: computed by the deterministic simulator; turnaround, waiting, "
-                    "response times and the Gantt chart were re-checked against their definitions"}
+            label = ("Verified: computed by the deterministic simulator; turnaround, waiting, "
+                     "response times and the Gantt chart were re-checked against their definitions")
+            fixed = len(out.get("corrections") or [])
+            if fixed:
+                label += f"; {fixed} number(s) in the model's explanation were corrected to the simulator's values"
+            return {"level": "verified", "label": label}
         if out["kind"] in ("needs_data", "invalid"):
             return {"level": "none", "label": "Nothing to verify: more or corrected input is needed"}
         if out["kind"] != "concept" or not out.get("in_scope", True):
@@ -1272,6 +1323,7 @@ class Tutor:
             hits = self.retriever.search(topic_q, algorithm=r.topic)
             out.update(result=result, problem=text, hits=hits)
             llm, problems = self._generate(question, hits, result)
+            llm = self._checked_explanation(out, llm, result)
             worked = ("Here's a worked example, generated and verified by the simulator:\n\n"
                      "```\n" + text + "\n```\n\n" + template_numerical(result, r.notes))
             out["text"] = worked
@@ -1310,12 +1362,7 @@ class Tutor:
             llm, problems = self._generate(question, hits, result)
             out["text"] = template_numerical(result, r.notes)
             direct = direct_answer(question, result)
-            if llm:
-                problems = problems + bad_formulas(llm)
-                if problems:                      # never show an explanation that contradicts the simulator
-                    llm = None
-                    out["notes"].append("The model's explanation contradicted the simulator, so only the "
-                                        "verified numbers are shown.")
+            llm = self._checked_explanation(out, llm, result)     # wrong numbers corrected; contradictions withheld
             body = llm or numerical_summary(result, r.notes)
             out["summary"] = (direct + "\n\n" + body) if direct else body
             if llm:
